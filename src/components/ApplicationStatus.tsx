@@ -2,6 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 export const ApplicationStatus = () => {
   const applications = [
@@ -11,7 +13,9 @@ export const ApplicationStatus = () => {
       status: "Released",
       environment: "Production",
       lastDeployment: "2024-05-25",
-      health: "Healthy"
+      health: "Healthy",
+      issues: 3,
+      coverage: "94%"
     },
     {
       name: "Backend API",
@@ -19,7 +23,9 @@ export const ApplicationStatus = () => {
       status: "In Development",
       environment: "Staging",
       lastDeployment: "2024-05-24",
-      health: "Testing"
+      health: "Testing",
+      issues: 7,
+      coverage: "87%"
     },
     {
       name: "Mobile App (iOS)",
@@ -27,7 +33,9 @@ export const ApplicationStatus = () => {
       status: "Released",
       environment: "App Store",
       lastDeployment: "2024-05-20",
-      health: "Healthy"
+      health: "Healthy",
+      issues: 1,
+      coverage: "91%"
     },
     {
       name: "Mobile App (Android)",
@@ -35,7 +43,19 @@ export const ApplicationStatus = () => {
       status: "Pending Release",
       environment: "Play Store",
       lastDeployment: "2024-05-26",
-      health: "Ready"
+      health: "Ready",
+      issues: 2,
+      coverage: "89%"
+    },
+    {
+      name: "Analytics Dashboard",
+      version: "v0.9.3",
+      status: "In Development",
+      environment: "Development",
+      lastDeployment: "2024-05-27",
+      health: "Development",
+      issues: 12,
+      coverage: "76%"
     }
   ];
 
@@ -53,42 +73,91 @@ export const ApplicationStatus = () => {
       case "Healthy": return "bg-green-100 text-green-800";
       case "Testing": return "bg-blue-100 text-blue-800";
       case "Ready": return "bg-green-100 text-green-800";
+      case "Development": return "bg-yellow-100 text-yellow-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
 
+  const statusSummary = {
+    Released: applications.filter(app => app.status === "Released").length,
+    "In Development": applications.filter(app => app.status === "In Development").length,
+    "Pending Release": applications.filter(app => app.status === "Pending Release").length,
+  };
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Applications & Releases</h2>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {applications.map((app, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{app.name}</CardTitle>
-                <Badge className={getHealthColor(app.health)}>{app.health}</Badge>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline">{app.version}</Badge>
-                <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-700">Environment:</span>
-                  <span>{app.environment}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-700">Last Deployment:</span>
-                  <span>{app.lastDeployment}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+    <TooltipProvider>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Applications & Releases</h2>
+          <div className="flex space-x-2">
+            {Object.entries(statusSummary).map(([status, count]) => (
+              <Badge key={status} variant="outline" className="text-xs">
+                {status}: {count}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Application Status Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Application</TableHead>
+                  <TableHead>Version</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Environment</TableHead>
+                  <TableHead>Health</TableHead>
+                  <TableHead>Issues</TableHead>
+                  <TableHead>Coverage</TableHead>
+                  <TableHead>Last Deploy</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {applications.map((app, index) => (
+                  <TableRow key={index} className="hover:bg-gray-50">
+                    <TableCell className="font-medium">{app.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{app.version}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Current development and release status</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>{app.environment}</TableCell>
+                    <TableCell>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge className={getHealthColor(app.health)}>{app.health}</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Application health and monitoring status</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      <span className={app.issues > 5 ? "text-red-600 font-medium" : "text-gray-700"}>
+                        {app.issues}
+                      </span>
+                    </TableCell>
+                    <TableCell>{app.coverage}</TableCell>
+                    <TableCell className="text-sm text-gray-600">{app.lastDeployment}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };

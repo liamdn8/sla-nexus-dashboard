@@ -15,6 +15,11 @@ import { FileText, LayoutDashboard, ListCheck, Calendar, Book } from "lucide-rea
 
 const navigationItems = [
   {
+    title: "Progress Checklist",
+    url: "#progress",
+    icon: ListCheck,
+  },
+  {
     title: "SLA Overview",
     url: "#sla-overview",
     icon: LayoutDashboard,
@@ -33,11 +38,6 @@ const navigationItems = [
     title: "Documents",
     url: "#documents",
     icon: FileText,
-  },
-  {
-    title: "Progress",
-    url: "#progress",
-    icon: ListCheck,
   },
 ];
 
