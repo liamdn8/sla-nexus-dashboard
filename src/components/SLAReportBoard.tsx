@@ -1,10 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 export const SLAReportBoard = () => {
+  const [selectedIssue, setSelectedIssue] = useState<any>(null);
+
   const slaEpics = [
     {
       id: "EPIC-001",
@@ -18,7 +21,12 @@ export const SLAReportBoard = () => {
       worklog: "32h",
       bugs: 2,
       priority: "High",
-      slaDeadline: "2024-06-15"
+      slaDeadline: "2024-06-15",
+      issues: [
+        { id: "AUTH-101", type: "Story", title: "Login Page Design", status: "Done", assignee: "John Doe", estimate: "4h", worklog: "4h", subtasks: 2 },
+        { id: "AUTH-102", type: "Task", title: "OAuth Integration", status: "In Progress", assignee: "Jane Smith", estimate: "8h", worklog: "5h", subtasks: 1 },
+        { id: "AUTH-103", type: "Story", title: "Password Reset Flow", status: "To Do", assignee: "Bob Wilson", estimate: "6h", worklog: "0h", subtasks: 3 }
+      ]
     },
     {
       id: "EPIC-002", 
@@ -32,35 +40,11 @@ export const SLAReportBoard = () => {
       worklog: "0h",
       bugs: 0,
       priority: "Medium",
-      slaDeadline: "2024-07-01"
-    },
-    {
-      id: "EPIC-003",
-      title: "Mobile App Release",
-      status: "Done",
-      stories: 10,
-      tasks: 8,
-      subtasks: 15,
-      resolved: 18,
-      estimation: "12 days",
-      worklog: "96h",
-      bugs: 1,
-      priority: "High",
-      slaDeadline: "2024-05-30"
-    },
-    {
-      id: "EPIC-004",
-      title: "API Documentation",
-      status: "In Progress",
-      stories: 4,
-      tasks: 3,
-      subtasks: 5,
-      resolved: 5,
-      estimation: "3 days",
-      worklog: "18h",
-      bugs: 0,
-      priority: "Low",
-      slaDeadline: "2024-06-10"
+      slaDeadline: "2024-07-01",
+      issues: [
+        { id: "PAY-201", type: "Story", title: "Stripe Integration", status: "To Do", assignee: "Alice Brown", estimate: "12h", worklog: "0h", subtasks: 2 },
+        { id: "PAY-202", type: "Task", title: "Payment Form UI", status: "To Do", assignee: "Charlie Davis", estimate: "6h", worklog: "0h", subtasks: 1 }
+      ]
     }
   ];
 
@@ -68,6 +52,7 @@ export const SLAReportBoard = () => {
     switch (status) {
       case "Done": return "bg-green-100 text-green-800";
       case "In Progress": return "bg-blue-100 text-blue-800";
+      case "To Do": return "bg-gray-100 text-gray-800";
       case "Planning": return "bg-yellow-100 text-yellow-800";
       default: return "bg-gray-100 text-gray-800";
     }
@@ -82,130 +67,190 @@ export const SLAReportBoard = () => {
     }
   };
 
-  const getDeadlineStatus = (deadline: string) => {
-    const deadlineDate = new Date(deadline);
-    const today = new Date();
-    const diffTime = deadlineDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return { status: "Overdue", color: "text-red-600" };
-    if (diffDays <= 3) return { status: "Due Soon", color: "text-yellow-600" };
-    return { status: "On Track", color: "text-green-600" };
+  const allIssues = slaEpics.flatMap(epic => 
+    epic.issues.map(issue => ({ ...issue, epic: epic.title, epicId: epic.id }))
+  );
+
+  const summary = {
+    totalIssues: allIssues.length,
+    doneIssues: allIssues.filter(i => i.status === "Done").length,
+    inProgressIssues: allIssues.filter(i => i.status === "In Progress").length,
+    todoIssues: allIssues.filter(i => i.status === "To Do").length,
+    totalEstimate: allIssues.reduce((sum, issue) => sum + parseInt(issue.estimate), 0),
+    totalWorklog: allIssues.reduce((sum, issue) => sum + parseInt(issue.worklog), 0)
   };
 
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900">SLA Report Board</h2>
-        
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">SLA Report Board</h2>
+          <div className="flex space-x-2">
+            <Badge variant="outline">
+              {summary.totalIssues} Total Issues
+            </Badge>
+            <Badge className="bg-green-100 text-green-800">
+              {summary.doneIssues} Done
+            </Badge>
+          </div>
+        </div>
+
+        {/* Summary Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-blue-600">{summary.totalIssues}</div>
+              <p className="text-sm text-gray-600">Total Issues</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-green-600">{summary.doneIssues}</div>
+              <p className="text-sm text-gray-600">Completed</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-orange-600">{summary.inProgressIssues}</div>
+              <p className="text-sm text-gray-600">In Progress</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-gray-600">{summary.todoIssues}</div>
+              <p className="text-sm text-gray-600">To Do</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-purple-600">{summary.totalWorklog}h</div>
+              <p className="text-sm text-gray-600">Total Worklog</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Split Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {slaEpics.map((epic) => {
-            const totalIssues = epic.stories + epic.tasks;
-            const progressPercentage = Math.round((epic.resolved / totalIssues) * 100);
-            const deadlineInfo = getDeadlineStatus(epic.slaDeadline);
-            
-            return (
-              <Card key={epic.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{epic.title}</CardTitle>
-                    <div className="flex space-x-2">
-                      <Badge className={getPriorityColor(epic.priority)}>{epic.priority}</Badge>
-                      <Badge className={getStatusColor(epic.status)}>{epic.status}</Badge>
+          {/* Left Side - Issues Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Issues List</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Issue</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Assignee</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allIssues.map((issue) => (
+                    <TableRow 
+                      key={issue.id} 
+                      className={`cursor-pointer hover:bg-gray-50 ${selectedIssue?.id === issue.id ? 'bg-blue-50' : ''}`}
+                      onClick={() => setSelectedIssue(issue)}
+                    >
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{issue.id}</div>
+                          <div className="text-sm text-gray-600">{issue.title}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{issue.type}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(issue.status)}>
+                          {issue.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">{issue.assignee}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Right Side - Issue Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Issue Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedIssue ? (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">{selectedIssue.title}</h3>
+                    <p className="text-sm text-gray-600">{selectedIssue.id} • {selectedIssue.epic}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Type</label>
+                      <div className="mt-1">
+                        <Badge variant="outline">{selectedIssue.type}</Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Status</label>
+                      <div className="mt-1">
+                        <Badge className={getStatusColor(selectedIssue.status)}>
+                          {selectedIssue.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Assignee</label>
+                      <p className="mt-1 text-sm">{selectedIssue.assignee}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Sub-tasks</label>
+                      <p className="mt-1 text-sm">{selectedIssue.subtasks} sub-tasks</p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-600">{epic.id}</p>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className={`text-sm font-medium ${deadlineInfo.color}`}>
-                          {deadlineInfo.status}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>SLA Deadline: {epic.slaDeadline}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <span className="font-medium text-gray-700">Stories:</span>
-                            <span className="ml-2">{epic.stories}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>User stories in this Epic</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <label className="text-sm font-medium text-gray-700">Original Estimate</label>
+                      <p className="mt-1 text-sm">{selectedIssue.estimate}</p>
                     </div>
                     <div>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <span className="font-medium text-gray-700">Tasks:</span>
-                            <span className="ml-2">{epic.tasks}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Tasks in this Epic</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            <span className="font-medium text-gray-700">Sub-tasks:</span>
-                            <span className="ml-2 text-gray-500">{epic.subtasks}</span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Sub-tasks (not counted in main progress)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Resolved:</span>
-                      <span className="ml-2">{epic.resolved}/{totalIssues}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Estimation:</span>
-                      <span className="ml-2">{epic.estimation}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Worklog:</span>
-                      <span className="ml-2">{epic.worklog}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Bugs:</span>
-                      <span className="ml-2 text-red-600">{epic.bugs}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">SLA Deadline:</span>
-                      <span className="ml-2">{epic.slaDeadline}</span>
+                      <label className="text-sm font-medium text-gray-700">Time Logged</label>
+                      <p className="mt-1 text-sm">{selectedIssue.worklog}</p>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
-                      <span>Epic Progress (Stories + Tasks)</span>
-                      <span>{progressPercentage}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${progressPercentage}%` }}
-                      ></div>
+
+                  {/* Sub-tasks Section */}
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Sub-tasks</label>
+                    <div className="mt-2 space-y-2">
+                      {Array.from({ length: selectedIssue.subtasks }, (_, i) => (
+                        <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span className="text-sm">Sub-task {i + 1}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {i < selectedIssue.subtasks - 1 ? "Done" : "In Progress"}
+                          </Badge>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+
+                  <div className="pt-4 border-t">
+                    <label className="text-sm font-medium text-gray-700">Epic</label>
+                    <p className="mt-1 text-sm text-blue-600">{selectedIssue.epicId} - {selectedIssue.epic}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  <p>Select an issue from the table to view details</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </TooltipProvider>

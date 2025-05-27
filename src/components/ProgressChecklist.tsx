@@ -1,112 +1,178 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export const ProgressChecklist = () => {
-  const checklistItems = [
-    {
-      category: "Development",
-      items: [
-        { task: "Frontend Development", completed: true, documentation: true },
-        { task: "Backend API Development", completed: true, documentation: true },
-        { task: "Database Schema", completed: true, documentation: false },
-        { task: "Authentication System", completed: false, documentation: false },
-        { task: "Payment Integration", completed: false, documentation: false },
-      ]
-    },
-    {
-      category: "Testing",
-      items: [
-        { task: "Unit Tests", completed: true, documentation: true },
-        { task: "Integration Tests", completed: false, documentation: false },
-        { task: "Performance Testing", completed: false, documentation: false },
-        { task: "Security Testing", completed: true, documentation: true },
-      ]
-    },
-    {
-      category: "Documentation",
-      items: [
-        { task: "API Documentation", completed: true, documentation: true },
-        { task: "User Manual", completed: true, documentation: true },
-        { task: "Deployment Guide", completed: false, documentation: false },
-        { task: "Troubleshooting Guide", completed: false, documentation: false },
-      ]
-    },
-    {
-      category: "Deployment",
-      items: [
-        { task: "Production Setup", completed: true, documentation: true },
-        { task: "CI/CD Pipeline", completed: true, documentation: false },
-        { task: "Monitoring Setup", completed: false, documentation: false },
-        { task: "Backup Strategy", completed: false, documentation: false },
-      ]
-    }
+  const overallStats = {
+    totalEpics: 12,
+    completedEpics: 8,
+    totalIssues: 156,
+    completedIssues: 98,
+    inProgressIssues: 42,
+    pendingIssues: 16,
+    overdueTasks: 3
+  };
+
+  const categoryProgress = [
+    { category: "Development", completed: 7, total: 9, percentage: 78 },
+    { category: "Testing", completed: 5, total: 8, percentage: 63 },
+    { category: "Documentation", completed: 6, total: 7, percentage: 86 },
+    { category: "Deployment", completed: 4, total: 6, percentage: 67 }
   ];
 
-  const getCategoryProgress = (items: any[]) => {
-    const completed = items.filter(item => item.completed).length;
-    const total = items.length;
-    return { completed, total, percentage: Math.round((completed / total) * 100) };
+  const chartData = categoryProgress.map(item => ({
+    name: item.category,
+    completed: item.completed,
+    remaining: item.total - item.completed,
+    percentage: item.percentage
+  }));
+
+  const pieData = [
+    { name: 'Completed', value: overallStats.completedIssues, color: '#10b981' },
+    { name: 'In Progress', value: overallStats.inProgressIssues, color: '#3b82f6' },
+    { name: 'Pending', value: overallStats.pendingIssues, color: '#f59e0b' }
+  ];
+
+  const chartConfig = {
+    completed: { label: "Completed", color: "#10b981" },
+    remaining: { label: "Remaining", color: "#e5e7eb" }
   };
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Progress Checklist</h2>
-      
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-900">Project Progress Overview</h2>
+        <Badge variant="outline" className="text-green-600">
+          {Math.round((overallStats.completedIssues / overallStats.totalIssues) * 100)}% Complete
+        </Badge>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Active Epics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overallStats.totalEpics}</div>
+            <p className="text-sm text-green-600">{overallStats.completedEpics} completed</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Total Issues</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{overallStats.totalIssues}</div>
+            <p className="text-sm text-blue-600">{overallStats.inProgressIssues} in progress</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Completion Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {Math.round((overallStats.completedIssues / overallStats.totalIssues) * 100)}%
+            </div>
+            <Progress value={(overallStats.completedIssues / overallStats.totalIssues) * 100} className="mt-2" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">Overdue Tasks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{overallStats.overdueTasks}</div>
+            <p className="text-sm text-gray-600">Needs attention</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {checklistItems.map((category, categoryIndex) => {
-          const progress = getCategoryProgress(category.items);
-          
-          return (
-            <Card key={categoryIndex} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{category.category}</CardTitle>
+        <Card>
+          <CardHeader>
+            <CardTitle>Category Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig}>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={chartData}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="completed" fill="var(--color-completed)" />
+                  <Bar dataKey="remaining" fill="var(--color-remaining)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Issue Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig}>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    dataKey="value"
+                    label={({ name, percentage }) => `${name}: ${percentage}%`}
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Category Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Category Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {categoryProgress.map((category, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="font-medium">{category.category}</div>
                   <Badge variant="outline">
-                    {progress.completed}/{progress.total} ({progress.percentage}%)
+                    {category.completed}/{category.total}
                   </Badge>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
-                    style={{ width: `${progress.percentage}%` }}
-                  ></div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-32">
+                    <Progress value={category.percentage} />
+                  </div>
+                  <div className="text-sm font-medium text-gray-600">
+                    {category.percentage}%
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {category.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="flex items-center justify-between p-2 rounded hover:bg-gray-50">
-                      <div className="flex items-center space-x-3">
-                        <Checkbox checked={item.completed} />
-                        <span className={`text-sm ${item.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                          {item.task}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge 
-                          variant={item.completed ? "default" : "secondary"}
-                          className="text-xs"
-                        >
-                          {item.completed ? "Done" : "Pending"}
-                        </Badge>
-                        <Badge 
-                          variant={item.documentation ? "default" : "outline"}
-                          className="text-xs"
-                        >
-                          {item.documentation ? "Documented" : "No Docs"}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
