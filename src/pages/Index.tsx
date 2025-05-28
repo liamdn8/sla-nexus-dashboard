@@ -26,16 +26,6 @@ const Index = () => {
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         
-        {/* Bookmark Navigation - Pinned to left */}
-        <div className="w-64 flex-shrink-0 bg-white border-r border-gray-200">
-          <div className="sticky top-0 h-screen overflow-y-auto">
-            <BookmarkNavigation 
-              onNavigate={handleNavigate}
-              activeSection={activeSection}
-            />
-          </div>
-        </div>
-
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
           <DashboardHeader />
@@ -61,6 +51,16 @@ const Index = () => {
             </section>
           </div>
         </main>
+
+        {/* Bookmark Navigation - Pinned to right */}
+        <div className="w-64 flex-shrink-0 bg-white border-l border-gray-200">
+          <div className="sticky top-0 h-screen overflow-y-auto">
+            <BookmarkNavigation 
+              onNavigate={handleNavigate}
+              activeSection={activeSection}
+            />
+          </div>
+        </div>
       </div>
     </SidebarProvider>
   );
