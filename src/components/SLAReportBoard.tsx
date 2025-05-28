@@ -1,12 +1,14 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { SummaryStats } from "./sla/SummaryStats";
+import { IssuesTable } from "./sla/IssuesTable";
+import { IssueDetails } from "./sla/IssueDetails";
+import { BookmarkNavigation } from "./sla/BookmarkNavigation";
 
 export const SLAReportBoard = () => {
   const [selectedIssue, setSelectedIssue] = useState<any>(null);
+  const [activeSection, setActiveSection] = useState('overview');
 
   const slaEpics = [
     {
@@ -80,177 +82,59 @@ export const SLAReportBoard = () => {
     totalWorklog: allIssues.reduce((sum, issue) => sum + parseInt(issue.worklog), 0)
   };
 
+  const handleNavigate = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <TooltipProvider>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">SLA Report Board</h2>
-          <div className="flex space-x-2">
-            <Badge variant="outline">
-              {summary.totalIssues} Total Issues
-            </Badge>
-            <Badge className="bg-green-100 text-green-800">
-              {summary.doneIssues} Done
-            </Badge>
+      <div className="flex space-x-6">
+        {/* Left Sidebar - Bookmark Navigation */}
+        <div className="w-64 flex-shrink-0">
+          <BookmarkNavigation 
+            onNavigate={handleNavigate}
+            activeSection={activeSection}
+          />
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">SLA Report Board</h2>
+            <div className="flex space-x-2">
+              <Badge variant="outline">
+                {summary.totalIssues} Total Issues
+              </Badge>
+              <Badge className="bg-green-100 text-green-800">
+                {summary.doneIssues} Done
+              </Badge>
+            </div>
           </div>
-        </div>
 
-        {/* Summary Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-600">{summary.totalIssues}</div>
-              <p className="text-sm text-gray-600">Total Issues</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-600">{summary.doneIssues}</div>
-              <p className="text-sm text-gray-600">Completed</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-orange-600">{summary.inProgressIssues}</div>
-              <p className="text-sm text-gray-600">In Progress</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-gray-600">{summary.todoIssues}</div>
-              <p className="text-sm text-gray-600">To Do</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-purple-600">{summary.totalWorklog}h</div>
-              <p className="text-sm text-gray-600">Total Worklog</p>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Summary Statistics */}
+          <section id="summary">
+            <SummaryStats summary={summary} />
+          </section>
 
-        {/* Split Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Side - Issues Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Issues List</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Issue</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Assignee</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {allIssues.map((issue) => (
-                    <TableRow 
-                      key={issue.id} 
-                      className={`cursor-pointer hover:bg-gray-50 ${selectedIssue?.id === issue.id ? 'bg-blue-50' : ''}`}
-                      onClick={() => setSelectedIssue(issue)}
-                    >
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{issue.id}</div>
-                          <div className="text-sm text-gray-600">{issue.title}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{issue.type}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(issue.status)}>
-                          {issue.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm">{issue.assignee}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          {/* Right Side - Issue Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Issue Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {selectedIssue ? (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">{selectedIssue.title}</h3>
-                    <p className="text-sm text-gray-600">{selectedIssue.id} • {selectedIssue.epic}</p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Type</label>
-                      <div className="mt-1">
-                        <Badge variant="outline">{selectedIssue.type}</Badge>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Status</label>
-                      <div className="mt-1">
-                        <Badge className={getStatusColor(selectedIssue.status)}>
-                          {selectedIssue.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Assignee</label>
-                      <p className="mt-1 text-sm">{selectedIssue.assignee}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Sub-tasks</label>
-                      <p className="mt-1 text-sm">{selectedIssue.subtasks} sub-tasks</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Original Estimate</label>
-                      <p className="mt-1 text-sm">{selectedIssue.estimate}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Time Logged</label>
-                      <p className="mt-1 text-sm">{selectedIssue.worklog}</p>
-                    </div>
-                  </div>
-
-                  {/* Sub-tasks Section */}
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Sub-tasks</label>
-                    <div className="mt-2 space-y-2">
-                      {Array.from({ length: selectedIssue.subtasks }, (_, i) => (
-                        <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                          <span className="text-sm">Sub-task {i + 1}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {i < selectedIssue.subtasks - 1 ? "Done" : "In Progress"}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <label className="text-sm font-medium text-gray-700">Epic</label>
-                    <p className="mt-1 text-sm text-blue-600">{selectedIssue.epicId} - {selectedIssue.epic}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center text-gray-500 py-8">
-                  <p>Select an issue from the table to view details</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Issues Management */}
+          <section id="issues">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <IssuesTable 
+                issues={allIssues}
+                selectedIssue={selectedIssue}
+                onIssueSelect={setSelectedIssue}
+                getStatusColor={getStatusColor}
+              />
+              <IssueDetails 
+                selectedIssue={selectedIssue}
+                getStatusColor={getStatusColor}
+              />
+            </div>
+          </section>
         </div>
       </div>
     </TooltipProvider>
