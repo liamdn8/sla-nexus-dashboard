@@ -23,13 +23,13 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full bg-gray-100">
         <AppSidebar />
         
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-white">
           <DashboardHeader />
-          <div className="container mx-auto px-6 py-8 space-y-8">
+          <div className="container mx-auto px-8 py-6 space-y-8">
             <section id="overview">
               <ProgressChecklist />
             </section>
@@ -53,7 +53,7 @@ const Index = () => {
         </main>
 
         {/* Bookmark Navigation - Pinned to right */}
-        <div className="w-64 flex-shrink-0 bg-white border-l border-gray-200">
+        <div className="w-72 flex-shrink-0 bg-slate-50 border-l border-gray-200">
           <div className="sticky top-0 h-screen overflow-y-auto">
             <BookmarkNavigation 
               onNavigate={handleNavigate}
