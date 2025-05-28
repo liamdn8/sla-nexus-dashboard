@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface NavigationItem {
   id: string;
@@ -15,27 +14,34 @@ interface BookmarkNavigationProps {
 
 export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNavigationProps) => {
   const navigationItems: NavigationItem[] = [
-    { id: 'overview', title: 'Overview', type: 'section' },
-    { id: 'sla-overview', title: 'Code Quality', type: 'section' },
-    { id: 'sla-board', title: 'Testing', type: 'section' },
-    { id: 'applications', title: 'Dependencies', type: 'section' },
-    { id: 'documents', title: 'Delivery Stage', type: 'section' }
+    { id: 'overview', title: 'Project Progress Overview', type: 'section' },
+    { id: 'sla-overview', title: 'SLA Overview', type: 'section' },
+    { id: 'sla-board', title: 'SLA Report Board', type: 'section' },
+    { id: 'applications', title: 'Application Status', type: 'section' },
+    { id: 'documents', title: 'Document Manager', type: 'section' }
+  ];
+
+  const categoryItems = [
+    { name: "Development", completed: 7, total: 9, percentage: 78 },
+    { name: "Testing", completed: 5, total: 8, percentage: 63 },
+    { name: "Documentation", completed: 6, total: 7, percentage: 86 },
+    { name: "Deployment", completed: 4, total: 6, percentage: 67 }
   ];
 
   return (
-    <div className="h-full bg-slate-50 p-4">
+    <div className="h-full bg-white p-6 border-l border-gray-200">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Bookmark</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Navigation</h3>
       </div>
       
-      <div className="space-y-1">
+      <div className="space-y-2">
         {navigationItems.map((item) => (
           <div
             key={item.id}
-            className={`px-3 py-2 rounded-md cursor-pointer transition-all duration-200 ${
+            className={`px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
               activeSection === item.id 
-                ? 'bg-indigo-500 text-white shadow-md' 
-                : 'text-gray-700 hover:bg-indigo-100 hover:text-indigo-700'
+                ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500' 
+                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
             }`}
             onClick={() => onNavigate(item.id)}
           >
@@ -46,27 +52,38 @@ export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNaviga
         ))}
       </div>
       
-      {/* Delivery Stage Section */}
+      {/* Category Breakdown Checklist */}
       <div className="mt-8 pt-6 border-t border-gray-200">
-        <h4 className="text-sm font-semibold text-gray-600 mb-3">Delivery Stage</h4>
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-xs text-gray-600">DEVELOPMENT</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-xs text-gray-600">DELIVERY VHT TESTING</span>
-          </div>
+        <h4 className="text-sm font-semibold text-gray-900 mb-4">Category Progress</h4>
+        <div className="space-y-3">
+          {categoryItems.map((category, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className={`w-3 h-3 rounded-full ${
+                  category.percentage >= 80 ? 'bg-green-500' : 
+                  category.percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}></div>
+                <div>
+                  <div className="text-xs font-medium text-gray-900">{category.name}</div>
+                  <div className="text-xs text-gray-500">{category.completed}/{category.total} tasks</div>
+                </div>
+              </div>
+              <div className="text-xs font-medium text-gray-600">
+                {category.percentage}%
+              </div>
+            </div>
+          ))}
         </div>
         
-        <div className="mt-4 space-y-2">
-          <button className="w-full px-3 py-2 bg-indigo-500 text-white text-xs rounded-md hover:bg-indigo-600 transition-colors">
-            Propose for release
-          </button>
-          <button className="w-full px-3 py-2 bg-purple-500 text-white text-xs rounded-md hover:bg-purple-600 transition-colors">
-            Transfer ephemeral
-          </button>
+        <div className="mt-4">
+          <div className="text-xs text-gray-500 mb-2">Overall Progress</div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-500 h-2 rounded-full" 
+              style={{ width: '73%' }}
+            ></div>
+          </div>
+          <div className="text-xs text-gray-600 mt-1">73% Complete</div>
         </div>
       </div>
     </div>
