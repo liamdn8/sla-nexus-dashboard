@@ -1,14 +1,13 @@
+
 import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SummaryStats } from "./sla/SummaryStats";
 import { IssuesTable } from "./sla/IssuesTable";
 import { IssueDetails } from "./sla/IssueDetails";
-import { BookmarkNavigation } from "./sla/BookmarkNavigation";
 
 export const SLAReportBoard = () => {
   const [selectedIssue, setSelectedIssue] = useState<any>(null);
-  const [activeSection, setActiveSection] = useState('overview');
 
   const slaEpics = [
     {
@@ -60,15 +59,6 @@ export const SLAReportBoard = () => {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "High": return "bg-red-100 text-red-800";
-      case "Medium": return "bg-yellow-100 text-yellow-800";
-      case "Low": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const allIssues = slaEpics.flatMap(epic => 
     epic.issues.map(issue => ({ ...issue, epic: epic.title, epicId: epic.id }))
   );
@@ -82,60 +72,41 @@ export const SLAReportBoard = () => {
     totalWorklog: allIssues.reduce((sum, issue) => sum + parseInt(issue.worklog), 0)
   };
 
-  const handleNavigate = (sectionId: string) => {
-    setActiveSection(sectionId);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <TooltipProvider>
-      <div className="flex space-x-6">
-        {/* Left Sidebar - Bookmark Navigation */}
-        <div className="w-64 flex-shrink-0">
-          <BookmarkNavigation 
-            onNavigate={handleNavigate}
-            activeSection={activeSection}
-          />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">SLA Report Board</h2>
-            <div className="flex space-x-2">
-              <Badge variant="outline">
-                {summary.totalIssues} Total Issues
-              </Badge>
-              <Badge className="bg-green-100 text-green-800">
-                {summary.doneIssues} Done
-              </Badge>
-            </div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">SLA Report Board</h2>
+          <div className="flex space-x-2">
+            <Badge variant="outline">
+              {summary.totalIssues} Total Issues
+            </Badge>
+            <Badge className="bg-green-100 text-green-800">
+              {summary.doneIssues} Done
+            </Badge>
           </div>
-
-          {/* Summary Statistics */}
-          <section id="summary">
-            <SummaryStats summary={summary} />
-          </section>
-
-          {/* Issues Management */}
-          <section id="issues">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <IssuesTable 
-                issues={allIssues}
-                selectedIssue={selectedIssue}
-                onIssueSelect={setSelectedIssue}
-                getStatusColor={getStatusColor}
-              />
-              <IssueDetails 
-                selectedIssue={selectedIssue}
-                getStatusColor={getStatusColor}
-              />
-            </div>
-          </section>
         </div>
+
+        {/* Summary Statistics */}
+        <section id="summary">
+          <SummaryStats summary={summary} />
+        </section>
+
+        {/* Issues Management */}
+        <section id="issues">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <IssuesTable 
+              issues={allIssues}
+              selectedIssue={selectedIssue}
+              onIssueSelect={setSelectedIssue}
+              getStatusColor={getStatusColor}
+            />
+            <IssueDetails 
+              selectedIssue={selectedIssue}
+              getStatusColor={getStatusColor}
+            />
+          </div>
+        </section>
       </div>
     </TooltipProvider>
   );
