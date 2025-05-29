@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, List, Smartphone, Rocket, Server } from "lucide-react";
+import { FileText, List, Smartphone, Rocket, Server, Building, Database } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navigationItems = [
@@ -40,13 +40,28 @@ const navigationItems = [
     url: "/environment-management",
     icon: Server,
   },
+  {
+    title: "Customers",
+    url: "/customers",
+    icon: Building,
+  },
+  {
+    title: "CNF List",
+    url: "/cnf-list",
+    icon: Database,
+  },
 ];
 
 export function AppSidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleNavClick = (url: string) => {
     navigate(url);
+  };
+
+  const isActive = (url: string) => {
+    return location.pathname === url;
   };
 
   return (
@@ -64,7 +79,9 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     onClick={() => handleNavClick(item.url)}
-                    className="cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
+                    className={`cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors ${
+                      isActive(item.url) ? 'bg-gray-800 text-white' : ''
+                    }`}
                   >
                     <item.icon className="h-5 w-5" />
                     <span>{item.title}</span>

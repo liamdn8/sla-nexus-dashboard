@@ -1,5 +1,8 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -116,233 +119,260 @@ const CNFDetail = () => {
     other: components.filter(c => c.type === 'other'),
   };
 
+  const getComponentsForTab = (tabType: string) => {
+    switch (tabType) {
+      case 'applications':
+        return componentsByType.application;
+      case 'configmaps':
+        return componentsByType.configmap;
+      case 'tosca':
+        return componentsByType.tosca;
+      case 'other':
+        return componentsByType.other;
+      default:
+        return [];
+    }
+  };
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate(`/environment-detail/SYS-001`)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to System
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{cnfInfo.name}</h1>
-            <p className="text-gray-600 mt-1">{cnfInfo.description}</p>
-            <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-              <span>System: {cnfInfo.system}</span>
-              <span>•</span>
-              <span>Customer: {cnfInfo.customer}</span>
-              <span>•</span>
-              <span>Version: {cnfInfo.version}</span>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <main className="flex-1">
+          <SidebarTrigger />
+          <div className="p-6 space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/environment-detail/SYS-001`)}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to System
+                </Button>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">{cnfInfo.name}</h1>
+                  <p className="text-gray-600 mt-1">{cnfInfo.description}</p>
+                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                    <span>System: {cnfInfo.system}</span>
+                    <span>•</span>
+                    <span>Customer: {cnfInfo.customer}</span>
+                    <span>•</span>
+                    <span>Version: {cnfInfo.version}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Badge className={getStatusColor(cnfInfo.status)} variant="outline">
+                  {cnfInfo.status}
+                </Badge>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Redeploy
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Square className="h-4 w-4 mr-2" />
+                    Stop
+                  </Button>
+                  <Button size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Update
+                  </Button>
+                </div>
+              </div>
             </div>
+
+            {/* Overview Cards */}
+            <div className="grid grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-600">CPU</p>
+                    <p className="text-lg font-bold text-gray-900">{cnfInfo.resources.cpu}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-600">Memory</p>
+                    <p className="text-lg font-bold text-gray-900">{cnfInfo.resources.memory}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-600">Storage</p>
+                    <p className="text-lg font-bold text-gray-900">{cnfInfo.resources.storage}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-600">Components</p>
+                    <p className="text-lg font-bold text-gray-900">{components.length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="applications">Applications ({componentsByType.application.length})</TabsTrigger>
+                <TabsTrigger value="configmaps">Config Maps ({componentsByType.configmap.length})</TabsTrigger>
+                <TabsTrigger value="tosca">TOSCA Files ({componentsByType.tosca.length})</TabsTrigger>
+                <TabsTrigger value="other">Other Files ({componentsByType.other.length})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Deployment Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Deployment Date:</span>
+                        <span>{new Date(cnfInfo.deploymentDate).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Last Update:</span>
+                        <span>{new Date(cnfInfo.lastUpdate).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Version:</span>
+                        <Badge variant="outline">{cnfInfo.version}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Status:</span>
+                        <Badge className={getStatusColor(cnfInfo.status)}>{cnfInfo.status}</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Component Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                          <Settings className="h-4 w-4 text-blue-600" />
+                          <span>Application Versions</span>
+                        </div>
+                        <span className="font-semibold">{componentsByType.application.length}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                          <FileText className="h-4 w-4 text-green-600" />
+                          <span>Config Maps</span>
+                        </div>
+                        <span className="font-semibold">{componentsByType.configmap.length}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                          <Download className="h-4 w-4 text-purple-600" />
+                          <span>TOSCA Files</span>
+                        </div>
+                        <span className="font-semibold">{componentsByType.tosca.length}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                          <FileText className="h-4 w-4 text-gray-600" />
+                          <span>Other Files</span>
+                        </div>
+                        <span className="font-semibold">{componentsByType.other.length}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              {/* Component Tables */}
+              {(['applications', 'configmaps', 'tosca', 'other'] as const).map((tabType) => {
+                const tabComponents = getComponentsForTab(tabType);
+                
+                return (
+                  <TabsContent key={tabType} value={tabType}>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>
+                          {tabType === 'applications' && 'Application Versions'}
+                          {tabType === 'configmaps' && 'Configuration Maps'}
+                          {tabType === 'tosca' && 'TOSCA Files'}
+                          {tabType === 'other' && 'Other Files'}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="text-left p-4">Name</th>
+                                <th className="text-left p-4">Type</th>
+                                <th className="text-left p-4">Version</th>
+                                <th className="text-left p-4">Size</th>
+                                <th className="text-left p-4">Last Modified</th>
+                                <th className="text-left p-4">Status</th>
+                                <th className="text-left p-4">Actions</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {tabComponents.map((component) => (
+                                <tr key={component.id} className="border-b hover:bg-gray-50">
+                                  <td className="p-4">
+                                    <div className="flex items-center space-x-2">
+                                      {getTypeIcon(component.type)}
+                                      <span className="font-medium">{component.name}</span>
+                                    </div>
+                                  </td>
+                                  <td className="p-4">
+                                    <Badge variant="outline">{getTypeLabel(component.type)}</Badge>
+                                  </td>
+                                  <td className="p-4">
+                                    <Badge variant="outline">{component.version}</Badge>
+                                  </td>
+                                  <td className="p-4 text-sm text-gray-600">{component.size}</td>
+                                  <td className="p-4 text-sm text-gray-600">
+                                    {new Date(component.lastModified).toLocaleDateString()}
+                                  </td>
+                                  <td className="p-4">
+                                    <Badge className={getStatusColor(component.status)}>
+                                      {component.status}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-4">
+                                    <div className="flex space-x-1">
+                                      <Button size="sm" variant="ghost">
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                      <Button size="sm" variant="ghost">
+                                        <Upload className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                );
+              })}
+            </Tabs>
           </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Badge className={getStatusColor(cnfInfo.status)} variant="outline">
-            {cnfInfo.status}
-          </Badge>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Redeploy
-            </Button>
-            <Button variant="outline" size="sm">
-              <Square className="h-4 w-4 mr-2" />
-              Stop
-            </Button>
-            <Button size="sm">
-              <Upload className="h-4 w-4 mr-2" />
-              Update
-            </Button>
-          </div>
-        </div>
+        </main>
       </div>
-
-      {/* Overview Cards */}
-      <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600">CPU</p>
-              <p className="text-lg font-bold text-gray-900">{cnfInfo.resources.cpu}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600">Memory</p>
-              <p className="text-lg font-bold text-gray-900">{cnfInfo.resources.memory}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600">Storage</p>
-              <p className="text-lg font-bold text-gray-900">{cnfInfo.resources.storage}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-sm font-medium text-gray-600">Components</p>
-              <p className="text-lg font-bold text-gray-900">{components.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="applications">Applications ({componentsByType.application.length})</TabsTrigger>
-          <TabsTrigger value="configmaps">Config Maps ({componentsByType.configmap.length})</TabsTrigger>
-          <TabsTrigger value="tosca">TOSCA Files ({componentsByType.tosca.length})</TabsTrigger>
-          <TabsTrigger value="other">Other Files ({componentsByType.other.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Deployment Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Deployment Date:</span>
-                  <span>{new Date(cnfInfo.deploymentDate).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Last Update:</span>
-                  <span>{new Date(cnfInfo.lastUpdate).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Version:</span>
-                  <Badge variant="outline">{cnfInfo.version}</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <Badge className={getStatusColor(cnfInfo.status)}>{cnfInfo.status}</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Component Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <Settings className="h-4 w-4 text-blue-600" />
-                    <span>Application Versions</span>
-                  </div>
-                  <span className="font-semibold">{componentsByType.application.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-4 w-4 text-green-600" />
-                    <span>Config Maps</span>
-                  </div>
-                  <span className="font-semibold">{componentsByType.configmap.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <Download className="h-4 w-4 text-purple-600" />
-                    <span>TOSCA Files</span>
-                  </div>
-                  <span className="font-semibold">{componentsByType.tosca.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-4 w-4 text-gray-600" />
-                    <span>Other Files</span>
-                  </div>
-                  <span className="font-semibold">{componentsByType.other.length}</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Component Tables */}
-        {(['applications', 'configmaps', 'tosca', 'other'] as const).map((tabType) => (
-          <TabsContent key={tabType} value={tabType}>
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {tabType === 'applications' && 'Application Versions'}
-                  {tabType === 'configmaps' && 'Configuration Maps'}
-                  {tabType === 'tosca' && 'TOSCA Files'}
-                  {tabType === 'other' && 'Other Files'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-4">Name</th>
-                        <th className="text-left p-4">Type</th>
-                        <th className="text-left p-4">Version</th>
-                        <th className="text-left p-4">Size</th>
-                        <th className="text-left p-4">Last Modified</th>
-                        <th className="text-left p-4">Status</th>
-                        <th className="text-left p-4">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {componentsByType[tabType === 'applications' ? 'application' : tabType].map((component) => (
-                        <tr key={component.id} className="border-b hover:bg-gray-50">
-                          <td className="p-4">
-                            <div className="flex items-center space-x-2">
-                              {getTypeIcon(component.type)}
-                              <span className="font-medium">{component.name}</span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <Badge variant="outline">{getTypeLabel(component.type)}</Badge>
-                          </td>
-                          <td className="p-4">
-                            <Badge variant="outline">{component.version}</Badge>
-                          </td>
-                          <td className="p-4 text-sm text-gray-600">{component.size}</td>
-                          <td className="p-4 text-sm text-gray-600">
-                            {new Date(component.lastModified).toLocaleDateString()}
-                          </td>
-                          <td className="p-4">
-                            <Badge className={getStatusColor(component.status)}>
-                              {component.status}
-                            </Badge>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex space-x-1">
-                              <Button size="sm" variant="ghost">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost">
-                                <Upload className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+    </SidebarProvider>
   );
 };
 

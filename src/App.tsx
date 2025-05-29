@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import BuildHistory from "./pages/BuildHistory";
 import EnvironmentManagement from "./pages/EnvironmentManagement";
 import EnvironmentDetail from "./pages/EnvironmentDetail";
 import CNFDetail from "./pages/CNFDetail";
+import CNFList from "./pages/CNFList";
 import NotFound from "./pages/NotFound";
 import Customers from "./pages/Customers";
 
@@ -32,6 +34,7 @@ const App = () => (
           <Route path="/build-history" element={<BuildHistory />} />
           <Route path="/environment-management" element={<EnvironmentManagement />} />
           <Route path="/customers" element={<Customers />} />
+          <Route path="/cnf-list" element={<CNFList />} />
           <Route path="/environment-detail/:systemId" element={<EnvironmentDetail />} />
           <Route path="/cnf-detail/:cnfId" element={<CNFDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
