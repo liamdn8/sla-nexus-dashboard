@@ -8,9 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { BookmarkNavigation } from "@/components/sla/BookmarkNavigation";
-import { SummaryStats } from "@/components/sla/SummaryStats";
-import { IssuesManagement } from "@/components/sla/IssuesManagement";
-import { IssueDetails } from "@/components/sla/IssueDetails";
+import { IssuesManagementContainer } from "@/components/sla/IssuesManagementContainer";
 import { DocumentManager } from "@/components/DocumentManager";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { ArrowLeft, Calendar, Users, Clock, Target, Play, Pause, Download, Plus, Truck, Upload } from "lucide-react";
@@ -375,15 +373,15 @@ const SLADetail = () => {
                 </div>
               </div>
 
-              {/* Issues Management - now includes both list and details */}
-              <IssuesManagement
+              {/* Issues Management - now using the new container component */}
+              <IssuesManagementContainer
                 allIssues={allIssues}
                 selectedIssue={selectedIssue}
                 onIssueSelect={setSelectedIssue}
                 getStatusColor={getStatusColor}
                 getPriorityColor={getPriorityColor}
                 currentPage={currentPage}
-                totalPages={Math.ceil(allIssues.length / itemsPerPage)}
+                totalPages={Math.ceil(allIssues.length / 5)}
                 onPageChange={setCurrentPage}
               />
 

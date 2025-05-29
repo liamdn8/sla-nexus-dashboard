@@ -57,7 +57,7 @@ export const IssuesList = ({
     return statusMatch && typeMatch;
   });
 
-  const itemsPerPage = 8;
+  const itemsPerPage = 5; // Fixed to 5 issues per page
   const totalFilteredPages = Math.ceil(filteredIssues.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedIssues = filteredIssues.slice(startIndex, startIndex + itemsPerPage);
@@ -109,8 +109,8 @@ export const IssuesList = ({
         </div>
       </div>
       
-      {/* Table Content */}
-      <div className="flex-1 overflow-hidden">
+      {/* Table Content - Fixed height for 5 rows */}
+      <div className="flex-1 min-h-0">
         <Table>
           <TableHeader>
             <TableRow>
@@ -124,7 +124,7 @@ export const IssuesList = ({
             {paginatedIssues.map((issue) => (
               <TableRow
                 key={issue.id}
-                className={`cursor-pointer ${
+                className={`cursor-pointer h-16 ${
                   selectedIssue?.id === issue.id ? 'bg-blue-50' : 'hover:bg-gray-50'
                 }`}
                 onClick={() => onIssueSelect(issue)}
@@ -157,6 +157,12 @@ export const IssuesList = ({
                     <Progress value={(issue.completedSubtasks / issue.subtasks) * 100} className="h-1" />
                   </div>
                 </TableCell>
+              </TableRow>
+            ))}
+            {/* Fill empty rows to maintain consistent height */}
+            {Array.from({ length: Math.max(0, 5 - paginatedIssues.length) }).map((_, index) => (
+              <TableRow key={`empty-${index}`} className="h-16">
+                <TableCell colSpan={4}></TableCell>
               </TableRow>
             ))}
           </TableBody>
