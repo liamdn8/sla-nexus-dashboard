@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface Issue {
   id: string;
@@ -12,8 +12,10 @@ interface Issue {
   estimate: string;
   worklog: string;
   subtasks: number;
+  completedSubtasks: number;
   epic: string;
   epicId: string;
+  priority: string;
 }
 
 interface IssueDetailsProps {
@@ -22,80 +24,96 @@ interface IssueDetailsProps {
 }
 
 export const IssueDetails = ({ selectedIssue, getStatusColor }: IssueDetailsProps) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Issue Details</CardTitle>
-      </CardHeader>
-      {/* <CardContent>
-        {selectedIssue ? (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold">{selectedIssue.title}</h3>
-              <p className="text-sm text-gray-600">{selectedIssue.id} • {selectedIssue.epic}</p>
-            </div>
+  if (!selectedIssue) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500">
+        <p>Select an issue to view details</p>
+      </div>
+    );
+  }
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Type</label>
-                <div className="mt-1">
-                  <Badge variant="outline">{selectedIssue.type}</Badge>
-                </div>
+  return (
+    <div className="h-full flex flex-col">
+      <div className="p-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold">Issue Details</h3>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">{selectedIssue.title}</h3>
+            <p className="text-sm text-gray-600">{selectedIssue.id} • {selectedIssue.epic}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Type</label>
+              <div className="mt-1">
+                <Badge variant="outline">{selectedIssue.type}</Badge>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Status</label>
-                <div className="mt-1">
-                  <Badge className={getStatusColor(selectedIssue.status)}>
-                    {selectedIssue.status}
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Status</label>
+              <div className="mt-1">
+                <Badge className={getStatusColor(selectedIssue.status)}>
+                  {selectedIssue.status}
+                </Badge>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Priority</label>
+              <div className="mt-1">
+                <Badge variant="outline">{selectedIssue.priority}</Badge>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Assignee</label>
+              <p className="mt-1 text-sm">{selectedIssue.assignee}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Original Estimate</label>
+              <p className="mt-1 text-sm">{selectedIssue.estimate}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Time Logged</label>
+              <p className="mt-1 text-sm">{selectedIssue.worklog}</p>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">Sub-tasks Progress</label>
+            <div className="mt-2">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+                <span>{selectedIssue.completedSubtasks} of {selectedIssue.subtasks} completed</span>
+                <span>{Math.round((selectedIssue.completedSubtasks / selectedIssue.subtasks) * 100)}%</span>
+              </div>
+              <Progress value={(selectedIssue.completedSubtasks / selectedIssue.subtasks) * 100} className="h-2" />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">Sub-tasks</label>
+            <div className="mt-2 space-y-2">
+              {Array.from({ length: selectedIssue.subtasks }, (_, i) => (
+                <div key={i} className="flex items-center justify-between p-2 bg-white border rounded">
+                  <span className="text-sm">Sub-task {i + 1}</span>
+                  <Badge variant="outline" className="text-xs">
+                    {i < selectedIssue.completedSubtasks ? "Done" : "In Progress"}
                   </Badge>
                 </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Assignee</label>
-                <p className="mt-1 text-sm">{selectedIssue.assignee}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Sub-tasks</label>
-                <p className="mt-1 text-sm">{selectedIssue.subtasks} sub-tasks</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Original Estimate</label>
-                <p className="mt-1 text-sm">{selectedIssue.estimate}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Time Logged</label>
-                <p className="mt-1 text-sm">{selectedIssue.worklog}</p>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700">Sub-tasks</label>
-              <div className="mt-2 space-y-2">
-                {Array.from({ length: selectedIssue.subtasks }, (_, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm">Sub-task {i + 1}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {i < selectedIssue.subtasks - 1 ? "Done" : "In Progress"}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-4 border-t">
-              <label className="text-sm font-medium text-gray-700">Epic</label>
-              <p className="mt-1 text-sm text-blue-600">{selectedIssue.epicId} - {selectedIssue.epic}</p>
+              ))}
             </div>
           </div>
-        ) : (
-          <div className="text-center text-gray-500 py-8">
-            <p>Select an issue from the table to view details</p>
+
+          <div className="pt-4 border-t">
+            <label className="text-sm font-medium text-gray-700">Epic</label>
+            <p className="mt-1 text-sm text-blue-600">{selectedIssue.epicId} - {selectedIssue.epic}</p>
           </div>
-        )}
-      </CardContent> */}
-    </Card>
+        </div>
+      </div>
+    </div>
   );
 };

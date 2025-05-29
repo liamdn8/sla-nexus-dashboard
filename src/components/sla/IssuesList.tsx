@@ -57,7 +57,7 @@ export const IssuesList = ({
     return statusMatch && typeMatch;
   });
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 8;
   const totalFilteredPages = Math.ceil(filteredIssues.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedIssues = filteredIssues.slice(startIndex, startIndex + itemsPerPage);
@@ -72,10 +72,10 @@ export const IssuesList = ({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Issues List</CardTitle>
+    <div className="h-full flex flex-col">
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold">Issues List</h3>
           <div className="flex items-center space-x-2">
             <Filter className="h-4 w-4 text-gray-500" />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -106,9 +106,10 @@ export const IssuesList = ({
         <div className="text-xs text-gray-600">
           {filteredIssues.length} issues
         </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-3">
+      </div>
+      
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-2">
           {paginatedIssues.map((issue) => (
             <div
               key={issue.id}
@@ -140,9 +141,11 @@ export const IssuesList = ({
             </div>
           ))}
         </div>
-        
-        {/* Pagination */}
-        <div className="flex items-center justify-between mt-4">
+      </div>
+      
+      {/* Pagination */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center justify-between">
           <Button
             variant="outline"
             size="sm"
@@ -152,7 +155,7 @@ export const IssuesList = ({
             Previous
           </Button>
           <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalFilteredPages}
+            {currentPage} of {totalFilteredPages}
           </span>
           <Button
             variant="outline"
@@ -163,7 +166,7 @@ export const IssuesList = ({
             Next
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };

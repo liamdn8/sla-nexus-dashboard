@@ -48,28 +48,34 @@ export const IssuesManagement = ({
     <div id="issues-management">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Issues Management</h1>
       
-      {/* Summary Cards */}
+      {/* Compact Summary Cards */}
       <IssueSummaryCards allIssues={allIssues} />
 
-      {/* Issues List and Details in parallel */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Issues List */}
-        <IssuesList
-          allIssues={allIssues}
-          selectedIssue={selectedIssue}
-          onIssueSelect={onIssueSelect}
-          getStatusColor={getStatusColor}
-          getPriorityColor={getPriorityColor}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-        />
+      {/* Issues Table with Two Columns */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="grid grid-cols-2 h-[600px]">
+          {/* Left Column: Issues List */}
+          <div className="border-r border-gray-200">
+            <IssuesList
+              allIssues={allIssues}
+              selectedIssue={selectedIssue}
+              onIssueSelect={onIssueSelect}
+              getStatusColor={getStatusColor}
+              getPriorityColor={getPriorityColor}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
+          </div>
 
-        {/* Issue Details */}
-        <IssueDetails 
-          selectedIssue={selectedIssue}
-          getStatusColor={getStatusColor}
-        />
+          {/* Right Column: Issue Details */}
+          <div className="bg-gray-50">
+            <IssueDetails 
+              selectedIssue={selectedIssue}
+              getStatusColor={getStatusColor}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
