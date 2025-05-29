@@ -27,7 +27,7 @@ export const IssueDetails = ({ selectedIssue, getStatusColor }: IssueDetailsProp
       <CardHeader>
         <CardTitle>Issue Details</CardTitle>
       </CardHeader>
-      <CardContent>
+      {/* <CardContent>
         {selectedIssue ? (
           <div className="space-y-4">
             <div>
@@ -95,7 +95,7 @@ export const IssueDetails = ({ selectedIssue, getStatusColor }: IssueDetailsProp
             <p>Select an issue from the table to view details</p>
           </div>
         )}
-      </CardContent>
+      </CardContent> */}
     </Card>
   );
 };
