@@ -18,6 +18,9 @@ import NotFound from "./pages/NotFound";
 import Customers from "./pages/Customers";
 import ExternalTools from "./pages/settings/ExternalTools";
 import EnvironmentMapping from "./pages/settings/EnvironmentMapping";
+import DevelopmentMapping from "./pages/settings/DevelopmentMapping";
+import SystemSettings from "./pages/settings/SystemSettings";
+import AccountSettings from "./pages/settings/AccountSettings";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,9 @@ const App = () => (
           <Route path="/cnf-detail/:cnfId" element={<CNFDetail />} />
           <Route path="/settings/external-tools" element={<ExternalTools />} />
           <Route path="/settings/environment-mapping" element={<EnvironmentMapping />} />
+          <Route path="/settings/development-mapping" element={<DevelopmentMapping />} />
+          <Route path="/settings/system" element={<SystemSettings />} />
+          <Route path="/settings/account" element={<AccountSettings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

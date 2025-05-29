@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link } from "lucide-react";
+import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const developmentItems = [
@@ -53,6 +53,11 @@ const deploymentItems = [
     url: "/cnf-list",
     icon: Database,
   },
+  {
+    title: "Environment Mapping",
+    url: "/settings/environment-mapping",
+    icon: Link,
+  },
 ];
 
 const settingsItems = [
@@ -62,9 +67,19 @@ const settingsItems = [
     icon: Link,
   },
   {
-    title: "Customer Mapping",
-    url: "/settings/customer-mapping",
-    icon: Users,
+    title: "Development Mapping",
+    url: "/settings/development-mapping",
+    icon: GitBranch,
+  },
+  {
+    title: "System Settings",
+    url: "/settings/system",
+    icon: Settings,
+  },
+  {
+    title: "Account Settings",
+    url: "/settings/account",
+    icon: User,
   },
 ];
 
@@ -82,7 +97,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-gray-200 bg-gray-900">
-      <SidebarHeader className="px-6 py-6 border-b border-gray-700">
+      <SidebarHeader className="px-6 py-4 border-b border-gray-700">
         <h2 className="text-xl font-bold text-white">SLA Dashboard</h2>
         <p className="text-sm text-gray-400 mt-1">Project Management</p>
       </SidebarHeader>
