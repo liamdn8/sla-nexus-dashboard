@@ -6,17 +6,18 @@ import { DashboardHeader } from "@/components/DashboardHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Settings, Plus, Trash2, Edit, Eye, EyeOff } from "lucide-react";
+import { Settings, Plus, Trash2, Edit, Users, User } from "lucide-react";
 import { ExternalToolDialog } from "@/components/settings/ExternalToolDialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface ExternalTool {
   id: string;
   name: string;
-  type: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins';
+  type: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins' | 'mano';
   url: string;
   authMethod: 'api_token' | 'username_password';
   username?: string;
+  scope: 'admin' | 'user';
   isConnected: boolean;
   lastSync?: string;
 }
@@ -31,6 +32,7 @@ const ExternalTools = () => {
       url: 'https://company.atlassian.net',
       authMethod: 'api_token',
       username: 'admin@company.com',
+      scope: 'admin',
       isConnected: true,
       lastSync: '2024-01-15T10:30:00Z'
     },
@@ -41,8 +43,18 @@ const ExternalTools = () => {
       url: 'https://harbor.company.com',
       authMethod: 'username_password',
       username: 'harbor-admin',
+      scope: 'admin',
       isConnected: false,
       lastSync: '2024-01-14T15:45:00Z'
+    },
+    {
+      id: '3',
+      name: 'MANO Orchestrator',
+      type: 'mano',
+      url: 'https://mano.company.com',
+      authMethod: 'api_token',
+      scope: 'user',
+      isConnected: false,
     }
   ]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -54,7 +66,8 @@ const ExternalTools = () => {
       harbor: '🐳',
       gitlab: '🦊',
       github: '🐙',
-      jenkins: '👷'
+      jenkins: '👷',
+      mano: '🔧'
     };
     return iconMap[type] || '🔧';
   };
@@ -65,7 +78,8 @@ const ExternalTools = () => {
       harbor: 'bg-cyan-100 text-cyan-800',
       gitlab: 'bg-orange-100 text-orange-800',
       github: 'bg-gray-100 text-gray-800',
-      jenkins: 'bg-red-100 text-red-800'
+      jenkins: 'bg-red-100 text-red-800',
+      mano: 'bg-purple-100 text-purple-800'
     };
     return colorMap[type] || 'bg-gray-100 text-gray-800';
   };
@@ -147,7 +161,7 @@ const ExternalTools = () => {
               <div>
                 <h2 className="text-3xl font-bold tracking-tight">External Tools</h2>
                 <p className="text-muted-foreground">
-                  Manage integrations with external tools like Jira, Harbor, and other services.
+                  Manage integrations with external tools like Jira, Harbor, MANO, and other services.
                 </p>
               </div>
               <Button onClick={() => setIsDialogOpen(true)}>
@@ -165,9 +179,19 @@ const ExternalTools = () => {
                         <span className="text-2xl">{getTypeIcon(tool.type)}</span>
                         <div>
                           <CardTitle className="text-lg">{tool.name}</CardTitle>
-                          <Badge className={getTypeBadgeColor(tool.type)}>
-                            {tool.type.toUpperCase()}
-                          </Badge>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge className={getTypeBadgeColor(tool.type)}>
+                              {tool.type.toUpperCase()}
+                            </Badge>
+                            <Badge variant="outline" className="flex items-center space-x-1">
+                              {tool.scope === 'admin' ? (
+                                <Users className="h-3 w-3" />
+                              ) : (
+                                <User className="h-3 w-3" />
+                              )}
+                              <span>{tool.scope === 'admin' ? 'Shared' : 'User'}</span>
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center space-x-1">

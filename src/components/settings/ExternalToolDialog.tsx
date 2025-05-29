@@ -21,14 +21,16 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface ExternalTool {
   id: string;
   name: string;
-  type: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins';
+  type: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins' | 'mano';
   url: string;
   authMethod: 'api_token' | 'username_password';
   username?: string;
+  scope: 'admin' | 'user';
   isConnected: boolean;
   lastSync?: string;
 }
@@ -48,13 +50,14 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
 }) => {
   const [formData, setFormData] = useState<{
     name: string;
-    type: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins';
+    type: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins' | 'mano';
     url: string;
     authMethod: 'api_token' | 'username_password';
     username: string;
     password: string;
     apiToken: string;
     description: string;
+    scope: 'admin' | 'user';
   }>({
     name: '',
     type: 'jira',
@@ -64,6 +67,7 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
     password: '',
     apiToken: '',
     description: '',
+    scope: 'admin',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showApiToken, setShowApiToken] = useState(false);
@@ -79,6 +83,7 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
         password: '',
         apiToken: '',
         description: '',
+        scope: tool.scope,
       });
     } else {
       setFormData({
@@ -90,6 +95,7 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
         password: '',
         apiToken: '',
         description: '',
+        scope: 'admin',
       });
     }
   }, [tool]);
@@ -103,6 +109,7 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
       url: formData.url,
       authMethod: formData.authMethod,
       username: formData.username,
+      scope: formData.scope,
       isConnected: false,
     });
   };
@@ -128,6 +135,10 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
       jenkins: {
         url: 'https://jenkins.your-domain.com',
         description: 'Connect to Jenkins for build automation'
+      },
+      mano: {
+        url: 'https://mano.your-domain.com',
+        description: 'Connect to MANO (Management and Orchestration) for NFV deployment'
       }
     };
     return templates[formData.type];
@@ -161,13 +172,14 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
               <Label htmlFor="type">Tool Type</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins') => {
+                onValueChange={(value: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins' | 'mano') => {
                   const templates = {
                     jira: 'https://your-domain.atlassian.net',
                     harbor: 'https://harbor.your-domain.com',
                     gitlab: 'https://gitlab.your-domain.com',
                     github: 'https://api.github.com',
-                    jenkins: 'https://jenkins.your-domain.com'
+                    jenkins: 'https://jenkins.your-domain.com',
+                    mano: 'https://mano.your-domain.com'
                   };
                   setFormData({ 
                     ...formData, 
@@ -185,6 +197,7 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
                   <SelectItem value="gitlab">GitLab</SelectItem>
                   <SelectItem value="github">GitHub</SelectItem>
                   <SelectItem value="jenkins">Jenkins</SelectItem>
+                  <SelectItem value="mano">MANO</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -202,6 +215,27 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
             />
             <p className="text-sm text-muted-foreground">
               {getToolTemplates().description}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Configuration Scope</Label>
+            <RadioGroup
+              value={formData.scope}
+              onValueChange={(value: 'admin' | 'user') => setFormData({ ...formData, scope: value })}
+              className="flex space-x-6"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="admin" id="admin" />
+                <Label htmlFor="admin">Admin Shared</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="user" id="user" />
+                <Label htmlFor="user">User Specific</Label>
+              </div>
+            </RadioGroup>
+            <p className="text-sm text-muted-foreground">
+              Admin shared tools are configured once and available to all users. User specific tools require each user to configure their own credentials.
             </p>
           </div>
 

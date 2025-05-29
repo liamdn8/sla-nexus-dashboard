@@ -17,7 +17,7 @@ import CNFList from "./pages/CNFList";
 import NotFound from "./pages/NotFound";
 import Customers from "./pages/Customers";
 import ExternalTools from "./pages/settings/ExternalTools";
-import CustomerMapping from "./pages/settings/CustomerMapping";
+import EnvironmentMapping from "./pages/settings/EnvironmentMapping";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +40,7 @@ const App = () => (
           <Route path="/environment-detail/:systemId" element={<EnvironmentDetail />} />
           <Route path="/cnf-detail/:cnfId" element={<CNFDetail />} />
           <Route path="/settings/external-tools" element={<ExternalTools />} />
-          <Route path="/settings/customer-mapping" element={<CustomerMapping />} />
+          <Route path="/settings/environment-mapping" element={<EnvironmentMapping />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
