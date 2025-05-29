@@ -379,10 +379,10 @@ const SLADetail = () => {
               {/* Issue Details - only show if there's a selected issue */}
               {selectedIssue && (
                 <div className="grid grid-cols-1 gap-6">
-                  <IssueDetails 
+                  {/* <IssueDetails 
                     selectedIssue={selectedIssue}
                     getStatusColor={getStatusColor}
-                  />
+                  /> */}
                 </div>
               )}
 
