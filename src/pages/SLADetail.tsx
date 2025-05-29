@@ -20,18 +20,27 @@ interface ApplicationVersion {
 
 interface Issue {
   id: string;
+  type: string;
   title: string;
-  description: string;
-  priority: string;
   status: string;
   assignee: string;
-  createdDate: string;
+  estimate: string;
+  worklog: string;
+  subtasks: number;
+  completedSubtasks: number;
+  epic: string;
+  epicId: string;
   category: string;
+  completed: number;
+  total: number;
+  percentage: number;
+  priority: string;
 }
 
 const SLADetail = () => {
   const { id } = useParams();
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Mock SLA data
   const sla = {
@@ -70,9 +79,97 @@ const SLADetail = () => {
     { id: 'dv2', application: 'Backend API', version: '1.9.0-alpha', status: 'Development', releaseDate: '2024-01-22', environment: 'Development' },
   ];
 
+  // Mock issues data with all required properties
+  const allIssues: Issue[] = [
+    {
+      id: 'ISS-001',
+      type: 'Bug',
+      title: 'Login page not responsive on mobile',
+      status: 'In Progress',
+      assignee: 'John Doe',
+      estimate: '4h',
+      worklog: '2h',
+      subtasks: 3,
+      completedSubtasks: 1,
+      epic: 'Mobile Optimization',
+      epicId: 'EPIC-001',
+      category: 'Frontend',
+      completed: 1,
+      total: 3,
+      percentage: 33,
+      priority: 'High'
+    },
+    {
+      id: 'ISS-002',
+      type: 'Story',
+      title: 'Implement user dashboard',
+      status: 'Done',
+      assignee: 'Jane Smith',
+      estimate: '8h',
+      worklog: '8h',
+      subtasks: 5,
+      completedSubtasks: 5,
+      epic: 'User Experience',
+      epicId: 'EPIC-002',
+      category: 'Frontend',
+      completed: 5,
+      total: 5,
+      percentage: 100,
+      priority: 'Medium'
+    },
+    {
+      id: 'ISS-003',
+      type: 'Task',
+      title: 'Database migration script',
+      status: 'To Do',
+      assignee: 'Bob Johnson',
+      estimate: '6h',
+      worklog: '0h',
+      subtasks: 2,
+      completedSubtasks: 0,
+      epic: 'Infrastructure',
+      epicId: 'EPIC-003',
+      category: 'Backend',
+      completed: 0,
+      total: 2,
+      percentage: 0,
+      priority: 'Low'
+    }
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'done':
+        return 'bg-green-100 text-green-800';
+      case 'in progress':
+        return 'bg-blue-100 text-blue-800';
+      case 'to do':
+        return 'bg-gray-100 text-gray-800';
+      case 'planning':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return 'bg-red-100 text-red-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'low':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const handleIssueSelect = (issue: Issue) => {
     setSelectedIssue(issue);
   };
+
+  const totalPages = Math.ceil(allIssues.length / 5);
 
   return (
     <SidebarProvider>
@@ -101,8 +198,14 @@ const SLADetail = () => {
 
             {/* Issues Management Section */}
             <IssuesManagementContainer 
+              allIssues={allIssues}
               selectedIssue={selectedIssue}
               onIssueSelect={handleIssueSelect}
+              getStatusColor={getStatusColor}
+              getPriorityColor={getPriorityColor}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
             />
           </div>
         </main>
