@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, List, Smartphone, Rocket, Server, Building, Database } from "lucide-react";
+import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const developmentItems = [
@@ -52,6 +52,19 @@ const deploymentItems = [
     title: "CNF List",
     url: "/cnf-list",
     icon: Database,
+  },
+];
+
+const settingsItems = [
+  {
+    title: "External Tools",
+    url: "/settings/external-tools",
+    icon: Link,
+  },
+  {
+    title: "Customer Mapping",
+    url: "/settings/customer-mapping",
+    icon: Users,
   },
 ];
 
@@ -100,6 +113,27 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {deploymentItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavClick(item.url)}
+                    className={`cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors ${
+                      isActive(item.url) ? 'bg-gray-800 text-white' : ''
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">Settings</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {settingsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     onClick={() => handleNavClick(item.url)}
