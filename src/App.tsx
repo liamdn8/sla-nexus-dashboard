@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import SLAList from "./pages/SLAList";
 import SLADetail from "./pages/SLADetail";
+import Applications from "./pages/Applications";
+import Releases from "./pages/Releases";
 import BuildHistory from "./pages/BuildHistory";
 import NotFound from "./pages/NotFound";
 
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/sla-list" element={<SLAList />} />
           <Route path="/sla-detail/:id" element={<SLADetail />} />
+          <Route path="/applications" element={<Applications />} />
+          <Route path="/releases" element={<Releases />} />
           <Route path="/build-history" element={<BuildHistory />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

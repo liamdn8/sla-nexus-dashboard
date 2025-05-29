@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, LayoutDashboard, ListCheck, Calendar, Book, List } from "lucide-react";
+import { FileText, LayoutDashboard, ListCheck, Calendar, Book, List, Smartphone, Rocket } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navigationItems = [
@@ -24,6 +24,16 @@ const navigationItems = [
     title: "SLA List",
     url: "/sla-list",
     icon: List,
+  },
+  {
+    title: "Applications",
+    url: "/applications",
+    icon: Smartphone,
+  },
+  {
+    title: "Releases",
+    url: "/releases",
+    icon: Rocket,
   },
   {
     title: "Build History",
@@ -44,11 +54,6 @@ const navigationItems = [
     title: "SLA Board",
     url: "/#sla-board",
     icon: Calendar,
-  },
-  {
-    title: "Applications",
-    url: "/#applications",
-    icon: Book,
   },
   {
     title: "Documents",
