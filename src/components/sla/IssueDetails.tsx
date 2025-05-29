@@ -36,10 +36,11 @@ export const IssueDetails = ({ selectedIssue, getStatusColor }: IssueDetailsProp
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h3 className="text-lg font-semibold">{selectedIssue.title}</h3>
-        <div className="text-xs text-gray-600">
+        
+      </div>
+      <div className="text-xs text-gray-600">
           {selectedIssue.id} • {selectedIssue.epic}
         </div>
-      </div>
       
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">
