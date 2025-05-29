@@ -106,7 +106,7 @@ const SLADetail = () => {
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         
-        <main className="flex-1 overflow-auto bg-white">
+        <main className="flex-1 overflow-auto bg-white" style={{ marginRight: '320px' }}>
           <div className="bg-white border-b border-gray-200 px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -135,10 +135,13 @@ const SLADetail = () => {
             </div>
           </div>
 
-          <div className="flex">
-            <div className="flex-1 container mx-auto px-8 py-6 space-y-8">
+          <div className="container mx-auto px-8 py-6 space-y-8">
+            {/* Overview */}
+            <div id="overview">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Overview</h1>
+              
               {/* Overview Cards */}
-              <div id="overview" className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Progress</CardTitle>
@@ -191,121 +194,120 @@ const SLADetail = () => {
                   <p className="text-gray-700">{slaDetail.description}</p>
                 </CardContent>
               </Card>
+            </div>
 
-              {/* Progress Checklist */}
-              <div id="progress-checklist">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Progress Checklist</h1>
-                <ProgressChecklist />
-              </div>
+            {/* Progress Checklist */}
+            <div id="progress-checklist">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Progress Checklist</h1>
+              <ProgressChecklist />
+            </div>
 
-              {/* Epic Stories */}
-              <div id="epic-stories">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Epic Stories</h1>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Epic Stories Overview</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {epicStories.map((epic) => (
-                        <div key={epic.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <p className="font-medium">{epic.title}</p>
-                            <p className="text-sm text-gray-500">{epic.id} • {epic.assignee}</p>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <div className="text-sm">
-                              <span className="font-medium">{epic.completed}/{epic.issues}</span> issues
-                            </div>
-                            <Progress value={(epic.completed / epic.issues) * 100} className="w-24" />
-                            <Badge className={getStatusColor(epic.status)}>
-                              {epic.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
+            {/* Issues Overview */}
+            <div id="issues-overview">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Issues Overview</h1>
+              
               {/* Issues Status Summary */}
-              <div id="issues-summary">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Issues Summary</h1>
+              <div className="mb-8">
                 <SummaryStats summary={summary} />
               </div>
 
-              {/* Issues Management */}
-              <div id="issues-management">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Issues Management</h1>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <IssuesTable 
-                    issues={issues}
-                    selectedIssue={selectedIssue}
-                    onIssueSelect={setSelectedIssue}
-                    getStatusColor={getStatusColor}
-                  />
-                  <IssueDetails 
-                    selectedIssue={selectedIssue}
-                    getStatusColor={getStatusColor}
-                  />
-                </div>
-              </div>
+              {/* Epic Stories */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Epic Stories</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {epicStories.map((epic) => (
+                      <div key={epic.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{epic.title}</p>
+                          <p className="text-sm text-gray-500">{epic.id} • {epic.assignee}</p>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-sm">
+                            <span className="font-medium">{epic.completed}/{epic.issues}</span> issues
+                          </div>
+                          <Progress value={(epic.completed / epic.issues) * 100} className="w-24" />
+                          <Badge className={getStatusColor(epic.status)}>
+                            {epic.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-              {/* Application Versions */}
-              <div id="application-versions">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Application Versions</h1>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Version History & Development Status</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left p-4">Version</th>
-                            <th className="text-left p-4">Status</th>
-                            <th className="text-left p-4">Release Date</th>
-                            <th className="text-left p-4">Environment</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {applicationVersions.map((version, index) => (
-                            <tr key={index} className="border-b hover:bg-gray-50">
-                              <td className="p-4 font-medium">{version.version}</td>
-                              <td className="p-4">
-                                <Badge className={getStatusColor(version.status)}>
-                                  {version.status}
-                                </Badge>
-                              </td>
-                              <td className="p-4 text-sm text-gray-600">{version.releaseDate}</td>
-                              <td className="p-4 text-sm text-gray-600">{version.environment}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Document Management */}
-              <div id="documents">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Documents</h1>
-                <DocumentManager />
+            {/* Issues Management */}
+            <div id="issues-management">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Issues Management</h1>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <IssuesTable 
+                  issues={issues}
+                  selectedIssue={selectedIssue}
+                  onIssueSelect={setSelectedIssue}
+                  getStatusColor={getStatusColor}
+                />
+                <IssueDetails 
+                  selectedIssue={selectedIssue}
+                  getStatusColor={getStatusColor}
+                />
               </div>
             </div>
 
-            {/* Bookmark Navigation */}
-            <div className="w-80">
-              <BookmarkNavigation 
-                onNavigate={handleNavigate}
-                activeSection={activeSection}
-              />
+            {/* Application Versions */}
+            <div id="application-versions">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Application Versions</h1>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Version History & Development Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-4">Version</th>
+                          <th className="text-left p-4">Status</th>
+                          <th className="text-left p-4">Release Date</th>
+                          <th className="text-left p-4">Environment</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {applicationVersions.map((version, index) => (
+                          <tr key={index} className="border-b hover:bg-gray-50">
+                            <td className="p-4 font-medium">{version.version}</td>
+                            <td className="p-4">
+                              <Badge className={getStatusColor(version.status)}>
+                                {version.status}
+                              </Badge>
+                            </td>
+                            <td className="p-4 text-sm text-gray-600">{version.releaseDate}</td>
+                            <td className="p-4 text-sm text-gray-600">{version.environment}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Documents */}
+            <div id="documents">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Documents</h1>
+              <DocumentManager />
             </div>
           </div>
         </main>
+
+        {/* Bookmark Navigation */}
+        <BookmarkNavigation 
+          onNavigate={handleNavigate}
+          activeSection={activeSection}
+        />
       </div>
     </SidebarProvider>
   );

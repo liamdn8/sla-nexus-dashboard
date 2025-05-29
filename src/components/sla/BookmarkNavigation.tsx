@@ -16,8 +16,7 @@ export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNaviga
   const navigationItems: NavigationItem[] = [
     { id: 'overview', title: 'Overview', type: 'section' },
     { id: 'progress-checklist', title: 'Progress Checklist', type: 'section' },
-    { id: 'epic-stories', title: 'Epic Stories', type: 'section' },
-    { id: 'issues-summary', title: 'Issues Summary', type: 'section' },
+    { id: 'issues-overview', title: 'Issues Overview', type: 'section' },
     { id: 'issues-management', title: 'Issues Management', type: 'section' },
     { id: 'application-versions', title: 'Application Versions', type: 'section' },
     { id: 'documents', title: 'Documents', type: 'section' }
@@ -31,7 +30,7 @@ export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNaviga
   ];
 
   return (
-    <div className="h-full bg-white p-6 border-l border-gray-200">
+    <div className="fixed top-0 right-0 h-screen w-80 bg-white p-6 border-l border-gray-200 overflow-y-auto z-10">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Navigation</h3>
       </div>
