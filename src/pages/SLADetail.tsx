@@ -1,23 +1,17 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useParams } from 'react-router-dom';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { BookmarkNavigation } from "@/components/sla/BookmarkNavigation";
 import { IssuesManagementContainer } from "@/components/sla/IssuesManagementContainer";
-import { DocumentManager } from "@/components/DocumentManager";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { ArrowLeft, Calendar, Users, Clock, Target, Play, Pause, Download, Plus, Truck, Upload } from "lucide-react";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { SLADetailHeader } from "@/components/sla/SLADetailHeader";
+import { SLAOverviewSection } from "@/components/sla/SLAOverviewSection";
+import { SLAApplicationVersions } from "@/components/sla/SLAApplicationVersions";
+import { SLADocumentsSection } from "@/components/sla/SLADocumentsSection";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const SLADetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('overview');
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
@@ -56,11 +50,6 @@ const SLADetail = () => {
     { id: 'AUTH-011', type: 'Task', title: 'Security Audit', status: 'Done', assignee: 'Ivy Zhang', estimate: '16h', worklog: '16h', subtasks: 5, completedSubtasks: 5, epic: 'Security Epic', epicId: 'EPIC-004', category: 'Testing', completed: 5, total: 5, percentage: 100, priority: 'Critical' },
     { id: 'AUTH-012', type: 'Story', title: 'Third-party Integrations', status: 'Planning', assignee: 'Jack Wong', estimate: '24h', worklog: '0h', subtasks: 10, completedSubtasks: 0, epic: 'Integration Epic', epicId: 'EPIC-012', category: 'Development', completed: 0, total: 10, percentage: 0, priority: 'High' },
   ];
-
-  // Pagination for issues
-  const totalPages = Math.ceil(allIssues.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const issues = allIssues.slice(startIndex, startIndex + itemsPerPage);
 
   // Separate bugs from other issues
   const bugs = allIssues.filter(issue => issue.type === 'Bug');
@@ -109,17 +98,6 @@ const SLADetail = () => {
     delivered: allApplicationVersions.filter(app => app.status === 'Delivered').length,
     pendingRelease: allApplicationVersions.filter(app => app.status === 'Pending Release').length,
     inProgress: allApplicationVersions.filter(app => app.status === 'In Progress').length,
-  };
-
-  // Progress checklist data merged into overview
-  const overallStats = {
-    totalEpics: 12,
-    completedEpics: 8,
-    totalIssues: 156,
-    completedIssues: 98,
-    inProgressIssues: 42,
-    pendingIssues: 16,
-    overdueTasks: 3
   };
 
   // Updated category progress to include bugs and other issues
@@ -231,147 +209,20 @@ const SLADetail = () => {
           <AppSidebar />
           
           <main className="flex-1 overflow-auto bg-white" style={{ marginRight: '320px' }}>
-            <div className="bg-white border-b border-gray-200 px-8 py-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => navigate('/sla-list')}
-                    className="flex items-center space-x-2"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span>Back to SLA List</span>
-                  </Button>
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{slaDetail.title}</h1>
-                    <p className="text-gray-600 mt-1">{slaDetail.project}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge className={getPriorityColor(slaDetail.priority)}>
-                    {slaDetail.priority}
-                  </Badge>
-                  <Badge className={getStatusColor(slaDetail.status)}>
-                    {slaDetail.status}
-                  </Badge>
-                </div>
-              </div>
-            </div>
+            <SLADetailHeader 
+              slaDetail={slaDetail}
+              getPriorityColor={getPriorityColor}
+              getStatusColor={getStatusColor}
+            />
 
             <div className="container mx-auto px-8 py-6 space-y-8">
               {/* Overview */}
-              <div id="overview">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Overview</h1>
-                
-                {/* Overview Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Progress</CardTitle>
-                      <Target className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{slaDetail.progress}%</div>
-                      <Progress value={slaDetail.progress} className="mt-2" />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Time Spent</CardTitle>
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{slaDetail.actualHours}h</div>
-                      <p className="text-xs text-muted-foreground">of {slaDetail.estimatedHours}h estimated</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Deadline</CardTitle>
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{slaDetail.deadline}</div>
-                      <p className="text-xs text-muted-foreground">Target completion date</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Overdue Tasks</CardTitle>
-                      <Target className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-red-600">3</div>
-                      <p className="text-xs text-muted-foreground">Needs attention</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Description */}
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle>Description</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700">{slaDetail.description}</p>
-                  </CardContent>
-                </Card>
-
-                {/* Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Category Progress</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ChartContainer config={chartConfig}>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart data={chartData}>
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <ChartLegend content={<ChartLegendContent />} />
-                            <Bar dataKey="completed" fill="var(--color-completed)" />
-                            <Bar dataKey="remaining" fill="var(--color-remaining)" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </ChartContainer>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Issue Status Distribution</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ChartContainer config={chartConfig}>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <PieChart>
-                            <Pie
-                              data={pieData}
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={100}
-                              dataKey="value"
-                              label={({ name, percentage }) => `${name}: ${percentage}%`}
-                            >
-                              {pieData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
-                              ))}
-                            </Pie>
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <ChartLegend content={<ChartLegendContent />} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </ChartContainer>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              <SLAOverviewSection 
+                slaDetail={slaDetail}
+                chartData={chartData}
+                pieData={pieData}
+                chartConfig={chartConfig}
+              />
 
               {/* Issues Management - now using the new container component */}
               <IssuesManagementContainer
@@ -385,204 +236,24 @@ const SLADetail = () => {
                 onPageChange={setCurrentPage}
               />
 
-              {/* Issue Details - only show if there's a selected issue */}
-              {/* {selectedIssue && (
-                <div className="grid grid-cols-1 gap-6">
-                  <IssueDetails 
-                    selectedIssue={selectedIssue}
-                    getStatusColor={getStatusColor}
-                  />
-                </div>
-              )} */}
-
               {/* Application Versions */}
-              <div id="application-versions">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">Application Versions</h1>
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Truck className="h-4 w-4 mr-1" />
-                      Delivery
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* App Status Summary */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="text-sm text-green-600 font-medium">Released</div>
-                    <div className="text-xl font-bold text-green-700">{appStatusSummary.released}</div>
-                  </div>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <div className="text-sm text-blue-600 font-medium">Delivered</div>
-                    <div className="text-xl font-bold text-blue-700">{appStatusSummary.delivered}</div>
-                  </div>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <div className="text-sm text-yellow-600 font-medium">Pending Release</div>
-                    <div className="text-xl font-bold text-yellow-700">{appStatusSummary.pendingRelease}</div>
-                  </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                    <div className="text-sm text-gray-600 font-medium">In Progress</div>
-                    <div className="text-xl font-bold text-gray-700">{appStatusSummary.inProgress}</div>
-                  </div>
-                </div>
-
-                {/* Bulk Actions */}
-                {selectedApps.length > 0 && (
-                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-blue-700">
-                        {selectedApps.length} application(s) selected
-                      </span>
-                      <div className="flex space-x-2">
-                        <Button size="sm" onClick={() => handleBulkAction('deploy')}>
-                          <Play className="h-4 w-4 mr-1" />
-                          Deploy
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleBulkAction('pause')}>
-                          <Pause className="h-4 w-4 mr-1" />
-                          Pause
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleBulkAction('export')}>
-                          <Download className="h-4 w-4 mr-1" />
-                          Export
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Version History & Development Status</CardTitle>
-                    <div className="text-sm text-gray-600">
-                      Page {currentAppPage} of {totalAppPages} ({allApplicationVersions.length} total apps)
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left p-4">
-                              <Checkbox 
-                                checked={selectedApps.length === applicationVersions.length}
-                                onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                              />
-                            </th>
-                            <th className="text-left p-4">Version</th>
-                            <th className="text-left p-4">Status</th>
-                            <th className="text-left p-4">Release Date</th>
-                            <th className="text-left p-4">Environment</th>
-                            <th className="text-left p-4">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {applicationVersions.map((version, index) => (
-                            <tr key={index} className="border-b hover:bg-gray-50">
-                              <td className="p-4">
-                                <Checkbox 
-                                  checked={selectedApps.includes(version.id)}
-                                  onCheckedChange={(checked) => handleAppSelection(version.id, !!checked)}
-                                />
-                              </td>
-                              <td className="p-4 font-medium">{version.version}</td>
-                              <td className="p-4">
-                                <Badge className={getStatusColor(version.status)}>
-                                  {version.status}
-                                </Badge>
-                              </td>
-                              <td className="p-4 text-sm text-gray-600">{version.releaseDate}</td>
-                              <td className="p-4 text-sm text-gray-600">{version.environment}</td>
-                              <td className="p-4">
-                                <div className="flex space-x-1">
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        size="sm" 
-                                        variant="ghost"
-                                        onClick={() => handleAppAction(version.id, 'propose-release')}
-                                      >
-                                        <Upload className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Propose Release</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                  
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        size="sm" 
-                                        variant="ghost"
-                                        onClick={() => handleAppAction(version.id, 'release')}
-                                      >
-                                        <Play className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Release</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                  
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        size="sm" 
-                                        variant="ghost"
-                                        onClick={() => handleAppAction(version.id, 'delivery')}
-                                      >
-                                        <Truck className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Delivery</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    
-                    {/* Pagination */}
-                    <div className="flex items-center justify-between mt-4">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentAppPage(prev => Math.max(1, prev - 1))}
-                        disabled={currentAppPage === 1}
-                      >
-                        Previous
-                      </Button>
-                      <span className="text-sm text-gray-600">
-                        Page {currentAppPage} of {totalAppPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentAppPage(prev => Math.min(totalAppPages, prev + 1))}
-                        disabled={currentAppPage === totalAppPages}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <SLAApplicationVersions 
+                allApplicationVersions={allApplicationVersions}
+                applicationVersions={applicationVersions}
+                appStatusSummary={appStatusSummary}
+                selectedApps={selectedApps}
+                currentAppPage={currentAppPage}
+                totalAppPages={totalAppPages}
+                getStatusColor={getStatusColor}
+                onAppSelection={handleAppSelection}
+                onSelectAll={handleSelectAll}
+                onBulkAction={handleBulkAction}
+                onAppAction={handleAppAction}
+                onPageChange={setCurrentAppPage}
+              />
 
               {/* Documents */}
-              <div id="documents">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Documents</h1>
-                <DocumentManager />
-              </div>
+              <SLADocumentsSection />
             </div>
           </main>
 
