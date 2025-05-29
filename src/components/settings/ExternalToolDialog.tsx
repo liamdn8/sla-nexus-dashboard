@@ -156,7 +156,7 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
                   setFormData({ 
                     ...formData, 
                     type: value,
-                    url: getToolTemplates()[value as keyof typeof getToolTemplates()]?.url || ''
+                    url: getToolTemplates()[value as keyof ReturnType<typeof getToolTemplates>]?.url || ''
                   });
                 }}
               >
