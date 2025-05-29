@@ -11,15 +11,10 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, LayoutDashboard, ListCheck, Calendar, Book, List, Smartphone, Rocket } from "lucide-react";
+import { FileText, List, Smartphone, Rocket } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navigationItems = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: LayoutDashboard,
-  },
   {
     title: "SLA List",
     url: "/sla-list",
@@ -40,53 +35,13 @@ const navigationItems = [
     url: "/build-history",
     icon: FileText,
   },
-  {
-    title: "Progress Checklist",
-    url: "/#overview",
-    icon: ListCheck,
-  },
-  {
-    title: "SLA Overview",
-    url: "/#sla-overview",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "SLA Board",
-    url: "/#sla-board",
-    icon: Calendar,
-  },
-  {
-    title: "Documents",
-    url: "/#documents",
-    icon: FileText,
-  },
 ];
 
 export function AppSidebar() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleNavClick = (url: string) => {
-    if (url.startsWith('/#')) {
-      // Handle anchor links for dashboard sections
-      if (location.pathname !== '/') {
-        navigate('/');
-        setTimeout(() => {
-          const element = document.querySelector(url.substring(1));
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      } else {
-        const element = document.querySelector(url.substring(1));
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    } else {
-      // Handle regular navigation
-      navigate(url);
-    }
+    navigate(url);
   };
 
   return (

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { ProgressChecklist } from "@/components/ProgressChecklist";
 import { ArrowLeft, Calendar, Users, Clock, Target } from "lucide-react";
 
 const SLADetail = () => {
@@ -148,6 +149,11 @@ const SLADetail = () => {
                 <p className="text-gray-700">{slaDetail.description}</p>
               </CardContent>
             </Card>
+
+            {/* Progress Checklist */}
+            <div>
+              <ProgressChecklist />
+            </div>
 
             {/* Stories and Tasks */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
