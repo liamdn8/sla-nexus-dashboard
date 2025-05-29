@@ -26,6 +26,11 @@ const navigationItems = [
     icon: List,
   },
   {
+    title: "Build History",
+    url: "/build-history",
+    icon: FileText,
+  },
+  {
     title: "Progress Checklist",
     url: "/#overview",
     icon: ListCheck,
