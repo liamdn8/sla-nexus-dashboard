@@ -46,11 +46,20 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
   tool,
   onSave,
 }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    type: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins';
+    url: string;
+    authMethod: 'api_token' | 'username_password';
+    username: string;
+    password: string;
+    apiToken: string;
+    description: string;
+  }>({
     name: '',
-    type: 'jira' as const,
+    type: 'jira',
     url: '',
-    authMethod: 'api_token' as const,
+    authMethod: 'api_token',
     username: '',
     password: '',
     apiToken: '',
@@ -152,11 +161,18 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
               <Label htmlFor="type">Tool Type</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: any) => {
+                onValueChange={(value: 'jira' | 'harbor' | 'gitlab' | 'github' | 'jenkins') => {
+                  const templates = {
+                    jira: 'https://your-domain.atlassian.net',
+                    harbor: 'https://harbor.your-domain.com',
+                    gitlab: 'https://gitlab.your-domain.com',
+                    github: 'https://api.github.com',
+                    jenkins: 'https://jenkins.your-domain.com'
+                  };
                   setFormData({ 
                     ...formData, 
                     type: value,
-                    url: getToolTemplates()[value as keyof ReturnType<typeof getToolTemplates>]?.url || ''
+                    url: templates[value]
                   });
                 }}
               >
@@ -193,7 +209,7 @@ export const ExternalToolDialog: React.FC<ExternalToolDialogProps> = ({
             <Label>Authentication Method</Label>
             <Tabs 
               value={formData.authMethod} 
-              onValueChange={(value: any) => setFormData({ ...formData, authMethod: value })}
+              onValueChange={(value: 'api_token' | 'username_password') => setFormData({ ...formData, authMethod: value })}
             >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="api_token">API Token</TabsTrigger>
