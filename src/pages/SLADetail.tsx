@@ -364,7 +364,7 @@ const SLADetail = () => {
                 </div>
               </div>
 
-              {/* Issues Management - using the new refactored component */}
+              {/* Issues Management - now includes both list and details */}
               <IssuesManagement
                 allIssues={allIssues}
                 selectedIssue={selectedIssue}

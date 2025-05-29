@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Bug, FileText, ListTodo, Filter } from "lucide-react";
+import { IssueDetails } from "./IssueDetails";
 
 interface Issue {
   id: string;
@@ -139,6 +141,7 @@ export const IssuesManagement = ({
         </div>
       </div>
 
+      {/* Issues List and Details in parallel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Issues List */}
         <Card>
@@ -235,10 +238,11 @@ export const IssuesManagement = ({
           </CardContent>
         </Card>
 
-        {/* Issue Details - keeping existing component */}
-        <div>
-          {/* This will be filled by the existing IssueDetails component */}
-        </div>
+        {/* Issue Details */}
+        <IssueDetails 
+          selectedIssue={selectedIssue}
+          getStatusColor={getStatusColor}
+        />
       </div>
     </div>
   );
