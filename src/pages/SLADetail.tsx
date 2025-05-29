@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { BookmarkNavigation } from "@/components/sla/BookmarkNavigation";
 import { SummaryStats } from "@/components/sla/SummaryStats";
-import { IssuesTable } from "@/components/sla/IssuesTable";
+import { IssuesListCard } from "@/components/sla/IssuesListCard";
 import { IssueDetails } from "@/components/sla/IssueDetails";
 import { DocumentManager } from "@/components/DocumentManager";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -65,12 +64,26 @@ const SLADetail = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const issues = allIssues.slice(startIndex, startIndex + itemsPerPage);
 
+  // Separate bugs from other issues
+  const bugs = allIssues.filter(issue => issue.type === 'Bug');
+  const otherIssues = allIssues.filter(issue => issue.type !== 'Bug');
+
   const summary = {
     totalIssues: allIssues.length,
     doneIssues: allIssues.filter(issue => issue.status === 'Done').length,
     inProgressIssues: allIssues.filter(issue => issue.status === 'In Progress').length,
     todoIssues: allIssues.filter(issue => issue.status === 'To Do').length,
     totalWorklog: allIssues.reduce((total, issue) => total + parseInt(issue.worklog.replace('h', '')), 0),
+    // Bug summary
+    totalBugs: bugs.length,
+    doneBugs: bugs.filter(bug => bug.status === 'Done').length,
+    inProgressBugs: bugs.filter(bug => bug.status === 'In Progress').length,
+    todoBugs: bugs.filter(bug => bug.status === 'To Do').length,
+    // Other issues summary
+    totalOtherIssues: otherIssues.length,
+    doneOtherIssues: otherIssues.filter(issue => issue.status === 'Done').length,
+    inProgressOtherIssues: otherIssues.filter(issue => issue.status === 'In Progress').length,
+    todoOtherIssues: otherIssues.filter(issue => issue.status === 'To Do').length,
   };
 
   // Generate more application versions for paging
@@ -111,11 +124,13 @@ const SLADetail = () => {
     overdueTasks: 3
   };
 
+  // Updated category progress to include bugs
   const categoryProgress = [
     { category: "Development", completed: 9, total: 17, percentage: 53 },
     { category: "Testing", completed: 5, total: 8, percentage: 63 },
     { category: "Documentation", completed: 6, total: 7, percentage: 86 },
-    { category: "Deployment", completed: 4, total: 6, percentage: 67 }
+    { category: "Deployment", completed: 4, total: 6, percentage: 67 },
+    { category: "Bugs", completed: bugs.filter(bug => bug.status === 'Done').length, total: bugs.length, percentage: Math.round((bugs.filter(bug => bug.status === 'Done').length / bugs.length) * 100) }
   ];
 
   const chartData = categoryProgress.map(item => ({
@@ -126,9 +141,9 @@ const SLADetail = () => {
   }));
 
   const pieData = [
-    { name: 'Completed', value: overallStats.completedIssues, color: '#10b981' },
-    { name: 'In Progress', value: overallStats.inProgressIssues, color: '#3b82f6' },
-    { name: 'Pending', value: overallStats.pendingIssues, color: '#f59e0b' }
+    { name: 'Completed', value: summary.doneIssues + summary.doneBugs, color: '#10b981' },
+    { name: 'In Progress', value: summary.inProgressIssues + summary.inProgressBugs, color: '#3b82f6' },
+    { name: 'Pending', value: summary.todoIssues + summary.todoBugs, color: '#f59e0b' }
   ];
 
   const chartConfig = {
@@ -241,7 +256,7 @@ const SLADetail = () => {
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Overview</h1>
                 
                 {/* Overview Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">Progress</CardTitle>
@@ -272,6 +287,17 @@ const SLADetail = () => {
                     <CardContent>
                       <div className="text-2xl font-bold">{slaDetail.deadline}</div>
                       <p className="text-xs text-muted-foreground">Target completion date</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Overdue Tasks</CardTitle>
+                      <Target className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-red-600">3</div>
+                      <p className="text-xs text-muted-foreground">Needs attention</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -340,81 +366,75 @@ const SLADetail = () => {
 
               {/* Issues Management */}
               <div id="issues-management">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900">Issues Management</h1>
-                  <div className="text-sm text-gray-600">
-                    Page {currentPage} of {totalPages} ({allIssues.length} total issues)
-                  </div>
-                </div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-6">Issues Management</h1>
                 
-                {/* Issues Status Summary */}
-                <div className="mb-8">
-                  <SummaryStats summary={summary} />
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Issues Status Summary with Bugs Separated */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Issues List</CardTitle>
+                      <CardTitle>Bugs Summary</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
-                        {issues.map((issue) => (
-                          <div
-                            key={issue.id}
-                            className={`p-4 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-                              selectedIssue?.id === issue.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
-                            }`}
-                            onClick={() => setSelectedIssue(issue)}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="outline">{issue.type}</Badge>
-                                <span className="font-medium">{issue.id}</span>
-                                <Badge className={getPriorityColor(issue.priority)}>{issue.priority}</Badge>
-                              </div>
-                              <Badge className={getStatusColor(issue.status)}>{issue.status}</Badge>
-                            </div>
-                            <div className="text-sm font-medium text-gray-900 mb-2">{issue.title}</div>
-                            <div className="flex items-center justify-between text-xs text-gray-600">
-                              <span>Assignee: {issue.assignee}</span>
-                              <span>Subtasks: {issue.completedSubtasks}/{issue.subtasks}</span>
-                            </div>
-                            <div className="mt-2">
-                              <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                                <span>Subtask Progress</span>
-                                <span>{Math.round((issue.completedSubtasks / issue.subtasks) * 100)}%</span>
-                              </div>
-                              <Progress value={(issue.completedSubtasks / issue.subtasks) * 100} className="h-2" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Pagination */}
-                      <div className="flex items-center justify-between mt-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                          disabled={currentPage === 1}
-                        >
-                          Previous
-                        </Button>
-                        <span className="text-sm text-gray-600">
-                          Page {currentPage} of {totalPages}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                          disabled={currentPage === totalPages}
-                        >
-                          Next
-                        </Button>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-red-600">{summary.totalBugs}</div>
+                          <div className="text-sm text-gray-600">Total Bugs</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{summary.doneBugs}</div>
+                          <div className="text-sm text-gray-600">Fixed</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">{summary.inProgressBugs}</div>
+                          <div className="text-sm text-gray-600">In Progress</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-gray-600">{summary.todoBugs}</div>
+                          <div className="text-sm text-gray-600">To Do</div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Other Issues Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold">{summary.totalOtherIssues}</div>
+                          <div className="text-sm text-gray-600">Total Issues</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{summary.doneOtherIssues}</div>
+                          <div className="text-sm text-gray-600">Done</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">{summary.inProgressOtherIssues}</div>
+                          <div className="text-sm text-gray-600">In Progress</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-gray-600">{summary.todoOtherIssues}</div>
+                          <div className="text-sm text-gray-600">To Do</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  <IssuesListCard
+                    issues={issues}
+                    selectedIssue={selectedIssue}
+                    onIssueSelect={setSelectedIssue}
+                    getStatusColor={getStatusColor}
+                    getPriorityColor={getPriorityColor}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    totalIssues={allIssues.length}
+                  />
                   
                   <IssueDetails 
                     selectedIssue={selectedIssue}
@@ -436,9 +456,6 @@ const SLADetail = () => {
                       <Truck className="h-4 w-4 mr-1" />
                       Delivery
                     </Button>
-                    <div className="text-sm text-gray-600">
-                      Page {currentAppPage} of {totalAppPages} ({allApplicationVersions.length} total apps)
-                    </div>
                   </div>
                 </div>
                 
@@ -488,8 +505,11 @@ const SLADetail = () => {
                 )}
 
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Version History & Development Status</CardTitle>
+                    <div className="text-sm text-gray-600">
+                      Page {currentAppPage} of {totalAppPages} ({allApplicationVersions.length} total apps)
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="overflow-x-auto">
