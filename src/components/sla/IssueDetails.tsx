@@ -34,10 +34,7 @@ export const IssueDetails = ({ selectedIssue, getStatusColor }: IssueDetailsProp
 
   return (
     <div className="h-full flex flex-col">
-      {/* <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold">Issue Details</h3>
-      </div> */}
-      <div>
+      <div className="p-4 border-b border-gray-200">
         <h3 className="text-lg font-semibold">{selectedIssue.title}</h3>
         <p className="text-sm text-gray-600">{selectedIssue.id} • {selectedIssue.epic}</p>
       </div>
