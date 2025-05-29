@@ -9,6 +9,7 @@ import { Plus, Truck, Play, Pause, Download, Upload } from "lucide-react";
 
 interface ApplicationVersion {
   id: string;
+  application: string;
   version: string;
   status: string;
   releaseDate: string;
@@ -129,6 +130,7 @@ export const SLAApplicationVersions = ({
                         onCheckedChange={(checked) => onSelectAll(!!checked)}
                       />
                     </th>
+                    <th className="text-left p-4">Application</th>
                     <th className="text-left p-4">Version</th>
                     <th className="text-left p-4">Status</th>
                     <th className="text-left p-4">Release Date</th>
@@ -139,6 +141,12 @@ export const SLAApplicationVersions = ({
                 <tbody>
                   {applicationVersions.map((version, index) => (
                     <tr key={index} className="border-b hover:bg-gray-50">
+                      <td className="p-4">
+                        <Checkbox 
+                          checked={selectedApps.includes(version.application)}
+                          onCheckedChange={(checked) => onAppSelection(version.id, !!checked)}
+                        />
+                      </td>
                       <td className="p-4">
                         <Checkbox 
                           checked={selectedApps.includes(version.id)}
