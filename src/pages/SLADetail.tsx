@@ -124,13 +124,24 @@ const SLADetail = () => {
     overdueTasks: 3
   };
 
-  // Updated category progress to include bugs
+  // Updated category progress to include bugs and other issues
   const categoryProgress = [
     { category: "Development", completed: 9, total: 17, percentage: 53 },
     { category: "Testing", completed: 5, total: 8, percentage: 63 },
     { category: "Documentation", completed: 6, total: 7, percentage: 86 },
     { category: "Deployment", completed: 4, total: 6, percentage: 67 },
-    { category: "Bugs", completed: bugs.filter(bug => bug.status === 'Done').length, total: bugs.length, percentage: Math.round((bugs.filter(bug => bug.status === 'Done').length / bugs.length) * 100) }
+    { 
+      category: "Bugs", 
+      completed: bugs.filter(bug => bug.status === 'Done').length, 
+      total: bugs.length, 
+      percentage: bugs.length > 0 ? Math.round((bugs.filter(bug => bug.status === 'Done').length / bugs.length) * 100) : 0 
+    },
+    { 
+      category: "Other Issues", 
+      completed: otherIssues.filter(issue => issue.status === 'Done').length, 
+      total: otherIssues.length, 
+      percentage: otherIssues.length > 0 ? Math.round((otherIssues.filter(issue => issue.status === 'Done').length / otherIssues.length) * 100) : 0 
+    }
   ];
 
   const chartData = categoryProgress.map(item => ({

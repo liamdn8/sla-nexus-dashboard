@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { IssueSummaryCards } from "./IssueSummaryCards";
 import { IssuesList } from "./IssuesList";
 import { IssueDetails } from "./IssueDetails";
 
@@ -48,9 +46,6 @@ export const IssuesManagement = ({
     <div id="issues-management">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Issues Management</h1>
       
-      {/* Compact Summary Cards */}
-      <IssueSummaryCards allIssues={allIssues} />
-
       {/* Issues Table with Two Columns */}
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="grid grid-cols-2 h-[600px]">

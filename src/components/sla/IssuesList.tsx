@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Bug, FileText, ListTodo, Filter } from "lucide-react";
 
 interface Issue {
@@ -42,11 +42,13 @@ export const IssuesList = ({
   selectedIssue,
   onIssueSelect,
   getStatusColor,
-  getPriorityColor
+  getPriorityColor,
+  currentPage,
+  totalPages,
+  onPageChange
 }: IssuesListProps) => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
 
   // Filter issues based on selected filters
   const filteredIssues = allIssues.filter(issue => {
@@ -69,13 +71,10 @@ export const IssuesList = ({
     }
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
   return (
     <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200">
+      {/* Fixed Header with Filters */}
+      <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold">Issues List</h3>
           <div className="flex items-center space-x-2">
@@ -110,50 +109,67 @@ export const IssuesList = ({
         </div>
       </div>
       
-      <div className="flex-1 p-4">
-        <ScrollArea className="h-[400px]">
-          <div className="space-y-2">
+      {/* Table Content */}
+      <div className="flex-1 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-20">Type</TableHead>
+              <TableHead>Issue</TableHead>
+              <TableHead className="w-24">Status</TableHead>
+              <TableHead className="w-32">Progress</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {paginatedIssues.map((issue) => (
-              <div
+              <TableRow
                 key={issue.id}
-                className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                  selectedIssue?.id === issue.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
+                className={`cursor-pointer ${
+                  selectedIssue?.id === issue.id ? 'bg-blue-50' : 'hover:bg-gray-50'
                 }`}
                 onClick={() => onIssueSelect(issue)}
               >
-                <div className="flex items-center justify-between mb-2">
+                <TableCell>
                   <div className="flex items-center space-x-2">
                     {getTypeIcon(issue.type)}
-                    <span className="font-medium text-sm">{issue.id}</span>
                     <Badge className={getPriorityColor(issue.priority)} variant="outline">
                       {issue.priority.charAt(0)}
                     </Badge>
                   </div>
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="font-medium text-sm">{issue.id}</div>
+                    <div className="text-sm text-gray-600 truncate max-w-48">{issue.title}</div>
+                    <div className="text-xs text-gray-500">{issue.assignee}</div>
+                  </div>
+                </TableCell>
+                <TableCell>
                   <Badge className={getStatusColor(issue.status)} variant="outline">
                     {issue.status}
                   </Badge>
-                </div>
-                <div className="text-sm font-medium text-gray-900 mb-2 line-clamp-1">
-                  {issue.title}
-                </div>
-                <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-                  <span>{issue.assignee}</span>
-                  <span>{issue.completedSubtasks}/{issue.subtasks}</span>
-                </div>
-                <Progress value={(issue.completedSubtasks / issue.subtasks) * 100} className="h-1" />
-              </div>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-600">
+                      {issue.completedSubtasks}/{issue.subtasks}
+                    </div>
+                    <Progress value={(issue.completedSubtasks / issue.subtasks) * 100} className="h-1" />
+                  </div>
+                </TableCell>
+              </TableRow>
             ))}
-          </div>
-        </ScrollArea>
+          </TableBody>
+        </Table>
       </div>
       
-      {/* Pagination */}
-      <div className="p-4 border-t border-gray-200">
+      {/* Fixed Pagination Footer */}
+      <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
         <div className="flex items-center justify-between">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
           >
             Previous
@@ -164,7 +180,7 @@ export const IssuesList = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => handlePageChange(Math.min(totalFilteredPages, currentPage + 1))}
+            onClick={() => onPageChange(Math.min(totalFilteredPages, currentPage + 1))}
             disabled={currentPage === totalFilteredPages}
           >
             Next
