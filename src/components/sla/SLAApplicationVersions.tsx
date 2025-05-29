@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,39 +17,71 @@ interface ApplicationVersion {
 }
 
 interface SLAApplicationVersionsProps {
-  allApplicationVersions: ApplicationVersion[];
   applicationVersions: ApplicationVersion[];
-  appStatusSummary: {
-    released: number;
-    delivered: number;
-    pendingRelease: number;
-    inProgress: number;
-  };
-  selectedApps: string[];
-  currentAppPage: number;
-  totalAppPages: number;
-  getStatusColor: (status: string) => string;
-  onAppSelection: (appId: string, checked: boolean) => void;
-  onSelectAll: (checked: boolean) => void;
-  onBulkAction: (action: string) => void;
-  onAppAction: (appId: string, action: string) => void;
-  onPageChange: (page: number) => void;
+  developmentVersions: ApplicationVersion[];
 }
 
-export const SLAApplicationVersions = ({
-  allApplicationVersions,
-  applicationVersions,
-  appStatusSummary,
-  selectedApps,
-  currentAppPage,
-  totalAppPages,
-  getStatusColor,
-  onAppSelection,
-  onSelectAll,
-  onBulkAction,
-  onAppAction,
-  onPageChange
-}: SLAApplicationVersionsProps) => {
+export const SLAApplicationVersions = ({ applicationVersions, developmentVersions }: SLAApplicationVersionsProps) => {
+  const [selectedApps, setSelectedApps] = useState<string[]>([]);
+  const [currentAppPage, setCurrentAppPage] = useState(1);
+  const appsPerPage = 5;
+
+  const allApplicationVersions = [...applicationVersions, ...developmentVersions];
+  const totalAppPages = Math.ceil(allApplicationVersions.length / appsPerPage);
+  const startIndex = (currentAppPage - 1) * appsPerPage;
+  const currentPageApps = allApplicationVersions.slice(startIndex, startIndex + appsPerPage);
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'staging':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'development':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const appStatusSummary = {
+    released: applicationVersions.filter(v => v.status === 'Active').length,
+    delivered: applicationVersions.filter(v => v.environment === 'Production').length,
+    pendingRelease: applicationVersions.filter(v => v.status === 'Staging').length,
+    inProgress: developmentVersions.length,
+  };
+
+  const onAppSelection = (appId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedApps([...selectedApps, appId]);
+    } else {
+      setSelectedApps(selectedApps.filter(id => id !== appId));
+    }
+  };
+
+  const onSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedApps(currentPageApps.map(app => app.id));
+    } else {
+      setSelectedApps([]);
+    }
+  };
+
+  const onBulkAction = (action: string) => {
+    console.log(`Bulk action: ${action} on apps:`, selectedApps);
+    // Handle bulk actions here
+  };
+
+  const onAppAction = (appId: string, action: string) => {
+    console.log(`Action: ${action} on app: ${appId}`);
+    // Handle individual app actions here
+  };
+
+  const onPageChange = (page: number) => {
+    setCurrentAppPage(page);
+    setSelectedApps([]); // Clear selections when changing pages
+  };
+
   return (
     <TooltipProvider>
       <div id="application-versions">
@@ -126,7 +158,7 @@ export const SLAApplicationVersions = ({
                   <tr className="border-b">
                     <th className="text-left p-4">
                       <Checkbox 
-                        checked={selectedApps.length === applicationVersions.length}
+                        checked={selectedApps.length === currentPageApps.length && currentPageApps.length > 0}
                         onCheckedChange={(checked) => onSelectAll(!!checked)}
                       />
                     </th>
@@ -139,7 +171,7 @@ export const SLAApplicationVersions = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {applicationVersions.map((version, index) => (
+                  {currentPageApps.map((version, index) => (
                     <tr key={index} className="border-b hover:bg-gray-50">
                       <td className="p-4">
                         <Checkbox 
@@ -147,7 +179,7 @@ export const SLAApplicationVersions = ({
                           onCheckedChange={(checked) => onAppSelection(version.id, !!checked)}
                         />
                       </td>
-                      <td className="p-4">{version.id}</td>
+                      <td className="p-4">{version.application}</td>
                       <td className="p-4">
                         <Badge variant="outline">
                           {version.version}

@@ -18,9 +18,20 @@ interface ApplicationVersion {
   environment: string;
 }
 
+interface Issue {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  assignee: string;
+  createdDate: string;
+  category: string;
+}
+
 const SLADetail = () => {
   const { id } = useParams();
-  const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
+  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
 
   // Mock SLA data
   const sla = {
@@ -59,6 +70,10 @@ const SLADetail = () => {
     { id: 'dv2', application: 'Backend API', version: '1.9.0-alpha', status: 'Development', releaseDate: '2024-01-22', environment: 'Development' },
   ];
 
+  const handleIssueSelect = (issue: Issue) => {
+    setSelectedIssue(issue);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -87,7 +102,7 @@ const SLADetail = () => {
             {/* Issues Management Section */}
             <IssuesManagementContainer 
               selectedIssue={selectedIssue}
-              onIssueSelect={setSelectedIssue}
+              onIssueSelect={handleIssueSelect}
             />
           </div>
         </main>
