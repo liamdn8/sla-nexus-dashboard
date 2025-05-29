@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -365,84 +364,27 @@ const SLADetail = () => {
                 </div>
               </div>
 
-              {/* Issues Management */}
-              <div id="issues-management">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Issues Management</h1>
-                
-                {/* Issues Status Summary with Bugs Separated */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Bugs Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-red-600">{summary.totalBugs}</div>
-                          <div className="text-sm text-gray-600">Total Bugs</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600">{summary.doneBugs}</div>
-                          <div className="text-sm text-gray-600">Fixed</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">{summary.inProgressBugs}</div>
-                          <div className="text-sm text-gray-600">In Progress</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-600">{summary.todoBugs}</div>
-                          <div className="text-sm text-gray-600">To Do</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+              {/* Issues Management - using the new refactored component */}
+              <IssuesManagement
+                allIssues={allIssues}
+                selectedIssue={selectedIssue}
+                onIssueSelect={setSelectedIssue}
+                getStatusColor={getStatusColor}
+                getPriorityColor={getPriorityColor}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Other Issues Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold">{summary.totalOtherIssues}</div>
-                          <div className="text-sm text-gray-600">Total Issues</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600">{summary.doneOtherIssues}</div>
-                          <div className="text-sm text-gray-600">Done</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">{summary.inProgressOtherIssues}</div>
-                          <div className="text-sm text-gray-600">In Progress</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-600">{summary.todoOtherIssues}</div>
-                          <div className="text-sm text-gray-600">To Do</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                  <IssuesListCard
-                    issues={issues}
-                    selectedIssue={selectedIssue}
-                    onIssueSelect={setSelectedIssue}
-                    getStatusColor={getStatusColor}
-                    getPriorityColor={getPriorityColor}
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                    totalIssues={allIssues.length}
-                  />
-                  
+              {/* Issue Details - only show if there's a selected issue */}
+              {selectedIssue && (
+                <div className="grid grid-cols-1 gap-6">
                   <IssueDetails 
                     selectedIssue={selectedIssue}
                     getStatusColor={getStatusColor}
                   />
                 </div>
-              </div>
+              )}
 
               {/* Application Versions */}
               <div id="application-versions">
