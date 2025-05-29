@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Database, Filter, Eye } from "lucide-react";
+import { Search, Database, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface CNF {
@@ -25,6 +25,8 @@ interface CNF {
   deploymentDate: string;
   lastUpdate: string;
   componentCount: number;
+  cpu: string;
+  memory: string;
 }
 
 const CNFList = () => {
@@ -34,8 +36,10 @@ const CNFList = () => {
   const [selectedSystem, setSelectedSystem] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [environmentFilter, setEnvironmentFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  // Mock data
+  // Extended mock data
   const cnfs: CNF[] = [
     {
       id: 'CNF-001',
@@ -50,7 +54,9 @@ const CNFList = () => {
       environment: 'production',
       deploymentDate: '2024-01-15',
       lastUpdate: '2024-01-20',
-      componentCount: 16
+      componentCount: 16,
+      cpu: '8.5 cores',
+      memory: '16.2 GB'
     },
     {
       id: 'CNF-002',
@@ -65,7 +71,9 @@ const CNFList = () => {
       environment: 'staging',
       deploymentDate: '2024-01-18',
       lastUpdate: '2024-01-22',
-      componentCount: 14
+      componentCount: 14,
+      cpu: '4.2 cores',
+      memory: '8.1 GB'
     },
     {
       id: 'CNF-003',
@@ -80,7 +88,9 @@ const CNFList = () => {
       environment: 'development',
       deploymentDate: '2024-01-20',
       lastUpdate: '2024-01-25',
-      componentCount: 12
+      componentCount: 12,
+      cpu: '2.1 cores',
+      memory: '4.3 GB'
     },
     {
       id: 'CNF-004',
@@ -95,7 +105,9 @@ const CNFList = () => {
       environment: 'production',
       deploymentDate: '2024-01-10',
       lastUpdate: '2024-01-18',
-      componentCount: 8
+      componentCount: 8,
+      cpu: '3.2 cores',
+      memory: '6.4 GB'
     },
     {
       id: 'CNF-005',
@@ -110,8 +122,28 @@ const CNFList = () => {
       environment: 'production',
       deploymentDate: '2024-01-12',
       lastUpdate: '2024-01-19',
-      componentCount: 10
+      componentCount: 10,
+      cpu: '5.1 cores',
+      memory: '10.2 GB'
     },
+    // Add more mock data for pagination
+    ...Array.from({ length: 20 }, (_, i) => ({
+      id: `CNF-${String(i + 6).padStart(3, '0')}`,
+      name: `Environment ${i + 6}`,
+      description: `Environment description ${i + 6}`,
+      systemId: `SYS-${String(Math.floor(i / 3) + 1).padStart(3, '0')}`,
+      systemName: ['E-commerce Platform', 'Payment Gateway', 'Analytics Dashboard'][i % 3],
+      customerId: `CUST-${String(Math.floor(i / 10) + 1).padStart(3, '0')}`,
+      customerName: ['Acme Corporation', 'Tech Solutions Inc'][Math.floor(i / 10)],
+      status: ['running', 'stopped', 'maintenance', 'pending'][Math.floor(Math.random() * 4)] as 'running' | 'stopped' | 'maintenance' | 'pending',
+      version: `v${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 10)}.0`,
+      environment: ['production', 'staging', 'development'][Math.floor(Math.random() * 3)] as 'production' | 'staging' | 'development',
+      deploymentDate: `2024-01-${String(Math.floor(Math.random() * 25) + 1).padStart(2, '0')}`,
+      lastUpdate: `2024-01-${String(Math.floor(Math.random() * 25) + 1).padStart(2, '0')}`,
+      componentCount: Math.floor(Math.random() * 20) + 5,
+      cpu: `${(Math.random() * 10 + 1).toFixed(1)} cores`,
+      memory: `${(Math.random() * 15 + 2).toFixed(1)} GB`
+    }))
   ];
 
   const customers = Array.from(new Set(cnfs.map(cnf => ({ id: cnf.customerId, name: cnf.customerName }))))
@@ -174,6 +206,10 @@ const CNFList = () => {
     return matchesSearch && matchesCustomer && matchesSystem && matchesStatus && matchesEnvironment;
   });
 
+  const totalPages = Math.ceil(filteredCNFs.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCNFs = filteredCNFs.slice(startIndex, startIndex + itemsPerPage);
+
   const handleCNFClick = (cnfId: string) => {
     navigate(`/cnf-detail/${cnfId}`);
   };
@@ -206,82 +242,72 @@ const CNFList = () => {
               </CardContent>
             </Card>
 
-            {/* Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Filter className="h-5 w-5 mr-2" />
-                  Filter CNF Environments
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search CNFs..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select customer" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Customers</SelectItem>
-                      {customers.map((customer) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedSystem} onValueChange={setSelectedSystem}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select system" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Systems</SelectItem>
-                      {systems.map((system) => (
-                        <SelectItem key={system.id} value={system.id}>
-                          {system.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="running">Running</SelectItem>
-                      <SelectItem value="stopped">Stopped</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={environmentFilter} onValueChange={setEnvironmentFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by environment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Environments</SelectItem>
-                      <SelectItem value="production">Production</SelectItem>
-                      <SelectItem value="staging">Staging</SelectItem>
-                      <SelectItem value="development">Development</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* CNF Table */}
             <Card>
               <CardHeader>
-                <CardTitle>CNF Environments</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>CNF Environments</CardTitle>
+                  <div className="flex items-center space-x-4">
+                    <div className="relative w-80">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search CNFs..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select customer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Customers</SelectItem>
+                        {customers.map((customer) => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                            {customer.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedSystem} onValueChange={setSelectedSystem}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select system" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Systems</SelectItem>
+                        {systems.map((system) => (
+                          <SelectItem key={system.id} value={system.id}>
+                            {system.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="running">Running</SelectItem>
+                        <SelectItem value="stopped">Stopped</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={environmentFilter} onValueChange={setEnvironmentFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by environment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Environments</SelectItem>
+                        <SelectItem value="production">Production</SelectItem>
+                        <SelectItem value="staging">Staging</SelectItem>
+                        <SelectItem value="development">Development</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -293,13 +319,14 @@ const CNFList = () => {
                       <TableHead>Environment</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Version</TableHead>
+                      <TableHead>Resources</TableHead>
                       <TableHead>Components</TableHead>
                       <TableHead>Last Update</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCNFs.map((cnf) => (
+                    {paginatedCNFs.map((cnf) => (
                       <TableRow 
                         key={cnf.id} 
                         className="hover:bg-gray-50 cursor-pointer"
@@ -320,6 +347,12 @@ const CNFList = () => {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">{cnf.version}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-xs space-y-1">
+                            <div>{cnf.cpu}</div>
+                            <div>{cnf.memory}</div>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-blue-50 text-blue-700">
@@ -346,6 +379,36 @@ const CNFList = () => {
                     ))}
                   </TableBody>
                 </Table>
+                
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-gray-600">
+                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredCNFs.length)} of {filteredCNFs.length} results
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
                 
                 {filteredCNFs.length === 0 && (
                   <div className="text-center py-8">

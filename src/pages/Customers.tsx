@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Building, ArrowLeft, Eye } from "lucide-react";
+import { Plus, Search, Building, ArrowLeft, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Customer {
@@ -18,13 +18,18 @@ interface Customer {
   status: 'active' | 'inactive';
   createdDate: string;
   contactEmail: string;
+  phone: string;
+  address: string;
+  lastActivity: string;
 }
 
 const Customers = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  // Mock data
+  // Expanded mock data
   const customers: Customer[] = [
     { 
       id: 'CUST-001', 
@@ -33,7 +38,10 @@ const Customers = () => {
       systemCount: 4, 
       status: 'active',
       createdDate: '2023-01-15',
-      contactEmail: 'admin@acme.com'
+      contactEmail: 'admin@acme.com',
+      phone: '+1-555-0123',
+      address: '123 Business Ave, New York, NY',
+      lastActivity: '2024-01-25'
     },
     { 
       id: 'CUST-002', 
@@ -42,7 +50,10 @@ const Customers = () => {
       systemCount: 2, 
       status: 'active',
       createdDate: '2023-03-20',
-      contactEmail: 'contact@techsolutions.com'
+      contactEmail: 'contact@techsolutions.com',
+      phone: '+1-555-0456',
+      address: '456 Tech Street, San Francisco, CA',
+      lastActivity: '2024-01-24'
     },
     { 
       id: 'CUST-003', 
@@ -51,8 +62,24 @@ const Customers = () => {
       systemCount: 1, 
       status: 'inactive',
       createdDate: '2023-06-10',
-      contactEmail: 'support@globalretail.com'
+      contactEmail: 'support@globalretail.com',
+      phone: '+1-555-0789',
+      address: '789 Retail Plaza, Chicago, IL',
+      lastActivity: '2024-01-10'
     },
+    // Add more mock data for pagination demo
+    ...Array.from({ length: 15 }, (_, i) => ({
+      id: `CUST-${String(i + 4).padStart(3, '0')}`,
+      name: `Customer ${i + 4}`,
+      description: `Description for customer ${i + 4}`,
+      systemCount: Math.floor(Math.random() * 5) + 1,
+      status: Math.random() > 0.3 ? 'active' : 'inactive' as 'active' | 'inactive',
+      createdDate: `2023-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
+      contactEmail: `contact${i + 4}@company.com`,
+      phone: `+1-555-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+      address: `${100 + i} Street ${i + 4}, City, State`,
+      lastActivity: `2024-01-${String(Math.floor(Math.random() * 25) + 1).padStart(2, '0')}`
+    }))
   ];
 
   const getStatusColor = (status: string) => {
@@ -71,6 +98,10 @@ const Customers = () => {
     customer.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.contactEmail.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
 
   const handleViewSystems = (customerId: string) => {
     navigate(`/environment-management?customer=${customerId}`);
@@ -118,28 +149,21 @@ const Customers = () => {
               </CardContent>
             </Card>
 
-            {/* Search */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Search Customers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search customers..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Customers Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Customers</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Customers</CardTitle>
+                  <div className="relative w-80">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search customers..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -148,18 +172,20 @@ const Customers = () => {
                       <TableHead>Customer Name</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Contact Email</TableHead>
+                      <TableHead>Phone</TableHead>
                       <TableHead>Systems</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Created Date</TableHead>
+                      <TableHead>Last Activity</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCustomers.map((customer) => (
+                    {paginatedCustomers.map((customer) => (
                       <TableRow key={customer.id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">{customer.name}</TableCell>
                         <TableCell className="text-gray-600">{customer.description}</TableCell>
                         <TableCell className="text-gray-600">{customer.contactEmail}</TableCell>
+                        <TableCell className="text-gray-600">{customer.phone}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-blue-50 text-blue-700">
                             {customer.systemCount} systems
@@ -171,7 +197,7 @@ const Customers = () => {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-gray-600">
-                          {new Date(customer.createdDate).toLocaleDateString()}
+                          {new Date(customer.lastActivity).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
                           <Button 
@@ -187,6 +213,36 @@ const Customers = () => {
                     ))}
                   </TableBody>
                 </Table>
+                
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-gray-600">
+                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredCustomers.length)} of {filteredCustomers.length} results
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
                 
                 {filteredCustomers.length === 0 && (
                   <div className="text-center py-8">

@@ -14,7 +14,7 @@ import {
 import { FileText, List, Smartphone, Rocket, Server, Building, Database } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const navigationItems = [
+const developmentItems = [
   {
     title: "SLA List",
     url: "/sla-list",
@@ -35,15 +35,18 @@ const navigationItems = [
     url: "/build-history",
     icon: FileText,
   },
-  {
-    title: "Environment Management",
-    url: "/environment-management",
-    icon: Server,
-  },
+];
+
+const deploymentItems = [
   {
     title: "Customers",
     url: "/customers",
     icon: Building,
+  },
+  {
+    title: "Environment Management",
+    url: "/environment-management",
+    icon: Server,
   },
   {
     title: "CNF List",
@@ -72,10 +75,31 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="bg-gray-900">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">Development</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => (
+              {developmentItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavClick(item.url)}
+                    className={`cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors ${
+                      isActive(item.url) ? 'bg-gray-800 text-white' : ''
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">Deployment</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {deploymentItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     onClick={() => handleNavClick(item.url)}

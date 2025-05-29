@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Building, Server, Filter } from "lucide-react";
+import { Plus, Search, Building, Server, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Customer {
@@ -29,6 +29,8 @@ interface System {
   environmentCount: number;
   status: 'running' | 'stopped' | 'maintenance';
   lastDeployment: string;
+  version: string;
+  deploymentType: string;
 }
 
 const EnvironmentManagement = () => {
@@ -39,6 +41,8 @@ const EnvironmentManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<string>(customerFilter || 'all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Mock data
   const customers: Customer[] = [
@@ -56,7 +60,9 @@ const EnvironmentManagement = () => {
       customerName: 'Acme Corporation', 
       environmentCount: 4, 
       status: 'running',
-      lastDeployment: '2024-01-25'
+      lastDeployment: '2024-01-25',
+      version: 'v2.1.0',
+      deploymentType: 'Production'
     },
     { 
       id: 'SYS-002', 
@@ -66,7 +72,9 @@ const EnvironmentManagement = () => {
       customerName: 'Acme Corporation', 
       environmentCount: 3, 
       status: 'running',
-      lastDeployment: '2024-01-20'
+      lastDeployment: '2024-01-20',
+      version: 'v1.5.0',
+      deploymentType: 'Production'
     },
     { 
       id: 'SYS-003', 
@@ -76,7 +84,9 @@ const EnvironmentManagement = () => {
       customerName: 'Tech Solutions Inc', 
       environmentCount: 2, 
       status: 'maintenance',
-      lastDeployment: '2024-01-18'
+      lastDeployment: '2024-01-18',
+      version: 'v3.1.0',
+      deploymentType: 'Staging'
     },
     { 
       id: 'SYS-004', 
@@ -86,7 +96,9 @@ const EnvironmentManagement = () => {
       customerName: 'Acme Corporation', 
       environmentCount: 2, 
       status: 'running',
-      lastDeployment: '2024-01-22'
+      lastDeployment: '2024-01-22',
+      version: 'v1.8.0',
+      deploymentType: 'Production'
     },
     { 
       id: 'SYS-005', 
@@ -96,8 +108,23 @@ const EnvironmentManagement = () => {
       customerName: 'Tech Solutions Inc', 
       environmentCount: 3, 
       status: 'stopped',
-      lastDeployment: '2024-01-15'
+      lastDeployment: '2024-01-15',
+      version: 'v2.3.0',
+      deploymentType: 'Development'
     },
+    // Add more mock data for pagination
+    ...Array.from({ length: 15 }, (_, i) => ({
+      id: `SYS-${String(i + 6).padStart(3, '0')}`,
+      name: `System ${i + 6}`,
+      description: `System description ${i + 6}`,
+      customerId: customers[i % 3].id,
+      customerName: customers[i % 3].name,
+      environmentCount: Math.floor(Math.random() * 5) + 1,
+      status: ['running', 'stopped', 'maintenance'][Math.floor(Math.random() * 3)] as 'running' | 'stopped' | 'maintenance',
+      lastDeployment: `2024-01-${String(Math.floor(Math.random() * 25) + 1).padStart(2, '0')}`,
+      version: `v${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 10)}.0`,
+      deploymentType: ['Production', 'Staging', 'Development'][Math.floor(Math.random() * 3)]
+    }))
   ];
 
   const getStatusColor = (status: string) => {
@@ -123,6 +150,10 @@ const EnvironmentManagement = () => {
     const matchesStatus = statusFilter === 'all' || system.status === statusFilter;
     return matchesSearch && matchesCustomer && matchesStatus;
   });
+
+  const totalPages = Math.ceil(filteredSystems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedSystems = filteredSystems.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSystemClick = (systemId: string) => {
     navigate(`/environment-detail/${systemId}`);
@@ -199,57 +230,47 @@ const EnvironmentManagement = () => {
               </Card>
             </div>
 
-            {/* Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Filter className="h-5 w-5 mr-2" />
-                  Filter Systems
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search systems..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Select customer" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Customers</SelectItem>
-                      {customers.map((customer) => (
-                        <SelectItem key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="running">Running</SelectItem>
-                      <SelectItem value="stopped">Stopped</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Systems Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Systems</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Systems</CardTitle>
+                  <div className="flex items-center space-x-4">
+                    <div className="relative w-80">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search systems..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Select customer" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Customers</SelectItem>
+                        {customers.map((customer) => (
+                          <SelectItem key={customer.id} value={customer.id}>
+                            {customer.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="running">Running</SelectItem>
+                        <SelectItem value="stopped">Stopped</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -258,6 +279,8 @@ const EnvironmentManagement = () => {
                       <TableHead>System Name</TableHead>
                       <TableHead>Customer</TableHead>
                       <TableHead>Description</TableHead>
+                      <TableHead>Version</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>CNF Environments</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Last Deployment</TableHead>
@@ -265,7 +288,7 @@ const EnvironmentManagement = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredSystems.map((system) => (
+                    {paginatedSystems.map((system) => (
                       <TableRow 
                         key={system.id} 
                         className="hover:bg-gray-50 cursor-pointer"
@@ -285,6 +308,12 @@ const EnvironmentManagement = () => {
                           </Button>
                         </TableCell>
                         <TableCell className="text-gray-600">{system.description}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{system.version}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{system.deploymentType}</Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="bg-blue-50 text-blue-700">
                             {system.environmentCount} CNFs
@@ -314,6 +343,36 @@ const EnvironmentManagement = () => {
                     ))}
                   </TableBody>
                 </Table>
+                
+                {/* Pagination */}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-sm text-gray-600">
+                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredSystems.length)} of {filteredSystems.length} results
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
                 
                 {filteredSystems.length === 0 && (
                   <div className="text-center py-8">
