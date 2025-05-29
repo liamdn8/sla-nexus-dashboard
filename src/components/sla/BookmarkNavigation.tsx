@@ -15,6 +15,7 @@ interface BookmarkNavigationProps {
 export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNavigationProps) => {
   const navigationItems: NavigationItem[] = [
     { id: 'overview', title: 'Overview', type: 'section' },
+    { id: 'category-summary', title: 'Category Summary', type: 'section' },
     { id: 'issues-management', title: 'Issues Management', type: 'section' },
     { id: 'application-versions', title: 'Application Versions', type: 'section' },
     { id: 'documents', title: 'Documents', type: 'section' }

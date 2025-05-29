@@ -8,6 +8,8 @@ import { SLAOverviewSection } from "@/components/sla/SLAOverviewSection";
 import { SLAApplicationVersions } from "@/components/sla/SLAApplicationVersions";
 import { SLADocumentsSection } from "@/components/sla/SLADocumentsSection";
 import { IssuesManagementContainer } from "@/components/sla/IssuesManagementContainer";
+import { IssueSummaryCards } from "@/components/sla/IssueSummaryCards";
+import { BookmarkNavigation } from "@/components/sla/BookmarkNavigation";
 
 interface ApplicationVersion {
   id: string;
@@ -41,6 +43,7 @@ const SLADetail = () => {
   const { id } = useParams();
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeSection, setActiveSection] = useState<string>('overview');
 
   // Mock SLA data
   const sla = {
@@ -79,7 +82,6 @@ const SLADetail = () => {
     { id: 'dv2', application: 'Backend API', version: '1.9.0-alpha', status: 'Development', releaseDate: '2024-01-22', environment: 'Development' },
   ];
 
-  // Mock issues data with all required properties
   const allIssues: Issue[] = [
     {
       id: 'ISS-001',
@@ -169,32 +171,36 @@ const SLADetail = () => {
     setSelectedIssue(issue);
   };
 
+  const handleNavigate = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const totalPages = Math.ceil(allIssues.length / 5);
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <main className="flex-1">
+        <main className="flex-1 relative">
           <SidebarTrigger />
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-6 mr-80">
             <SLADetailHeader sla={sla} />
             
-            <div className="grid grid-cols-3 gap-6">
-              {/* Left Column - Overview and Application Versions */}
-              <div className="col-span-2 space-y-6">
-                <SLAOverviewSection sla={sla} />
-                <SLAApplicationVersions 
-                  applicationVersions={applicationVersions}
-                  developmentVersions={developmentVersions}
-                />
-              </div>
+            {/* Overview Section */}
+            <section id="overview">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Overview</h1>
+              <SLAOverviewSection sla={sla} />
+            </section>
 
-              {/* Right Column - Documents */}
-              <div className="space-y-6">
-                <SLADocumentsSection />
-              </div>
-            </div>
+            {/* Category Summary Section */}
+            <section id="category-summary">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Category Summary</h1>
+              <IssueSummaryCards allIssues={allIssues} />
+            </section>
 
             {/* Issues Management Section */}
             <IssuesManagementContainer 
@@ -207,7 +213,25 @@ const SLADetail = () => {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
+
+            {/* Application Versions Section */}
+            <section id="application-versions">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">Application Versions</h1>
+              <SLAApplicationVersions 
+                applicationVersions={applicationVersions}
+                developmentVersions={developmentVersions}
+              />
+            </section>
+
+            {/* Documents Section - Moved to bottom */}
+            <SLADocumentsSection />
           </div>
+
+          {/* Bookmark Navigation - Fixed on the right */}
+          <BookmarkNavigation 
+            onNavigate={handleNavigate}
+            activeSection={activeSection}
+          />
         </main>
       </div>
     </SidebarProvider>
