@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bug, FileText, ListTodo, Filter } from "lucide-react";
 
 interface Issue {
@@ -42,13 +42,11 @@ export const IssuesList = ({
   selectedIssue,
   onIssueSelect,
   getStatusColor,
-  getPriorityColor,
-  currentPage,
-  totalPages,
-  onPageChange
+  getPriorityColor
 }: IssuesListProps) => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filter issues based on selected filters
   const filteredIssues = allIssues.filter(issue => {
@@ -69,6 +67,10 @@ export const IssuesList = ({
       case 'Task': return <ListTodo className="h-4 w-4 text-green-500" />;
       default: return <FileText className="h-4 w-4 text-gray-500" />;
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -108,39 +110,41 @@ export const IssuesList = ({
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-2">
-          {paginatedIssues.map((issue) => (
-            <div
-              key={issue.id}
-              className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                selectedIssue?.id === issue.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
-              }`}
-              onClick={() => onIssueSelect(issue)}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  {getTypeIcon(issue.type)}
-                  <span className="font-medium text-sm">{issue.id}</span>
-                  <Badge className={getPriorityColor(issue.priority)} variant="outline">
-                    {issue.priority.charAt(0)}
+      <div className="flex-1 p-4">
+        <ScrollArea className="h-[400px]">
+          <div className="space-y-2">
+            {paginatedIssues.map((issue) => (
+              <div
+                key={issue.id}
+                className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+                  selectedIssue?.id === issue.id ? 'bg-blue-50 border-blue-200' : 'border-gray-200'
+                }`}
+                onClick={() => onIssueSelect(issue)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    {getTypeIcon(issue.type)}
+                    <span className="font-medium text-sm">{issue.id}</span>
+                    <Badge className={getPriorityColor(issue.priority)} variant="outline">
+                      {issue.priority.charAt(0)}
+                    </Badge>
+                  </div>
+                  <Badge className={getStatusColor(issue.status)} variant="outline">
+                    {issue.status}
                   </Badge>
                 </div>
-                <Badge className={getStatusColor(issue.status)} variant="outline">
-                  {issue.status}
-                </Badge>
+                <div className="text-sm font-medium text-gray-900 mb-2 line-clamp-1">
+                  {issue.title}
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+                  <span>{issue.assignee}</span>
+                  <span>{issue.completedSubtasks}/{issue.subtasks}</span>
+                </div>
+                <Progress value={(issue.completedSubtasks / issue.subtasks) * 100} className="h-1" />
               </div>
-              <div className="text-sm font-medium text-gray-900 mb-2 line-clamp-1">
-                {issue.title}
-              </div>
-              <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-                <span>{issue.assignee}</span>
-                <span>{issue.completedSubtasks}/{issue.subtasks}</span>
-              </div>
-              <Progress value={(issue.completedSubtasks / issue.subtasks) * 100} className="h-1" />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
       
       {/* Pagination */}
@@ -149,7 +153,7 @@ export const IssuesList = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
           >
             Previous
@@ -160,7 +164,7 @@ export const IssuesList = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onPageChange(Math.min(totalFilteredPages, currentPage + 1))}
+            onClick={() => handlePageChange(Math.min(totalFilteredPages, currentPage + 1))}
             disabled={currentPage === totalFilteredPages}
           >
             Next

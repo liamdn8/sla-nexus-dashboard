@@ -153,10 +153,10 @@ const SLADetail = () => {
 
   // Set first issue as default selection
   React.useEffect(() => {
-    if (issues.length > 0 && !selectedIssue) {
-      setSelectedIssue(issues[0]);
+    if (allIssues.length > 0 && !selectedIssue) {
+      setSelectedIssue(allIssues[0]);
     }
-  }, [issues, selectedIssue]);
+  }, [allIssues, selectedIssue]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -372,7 +372,7 @@ const SLADetail = () => {
                 getStatusColor={getStatusColor}
                 getPriorityColor={getPriorityColor}
                 currentPage={currentPage}
-                totalPages={totalPages}
+                totalPages={Math.ceil(allIssues.length / itemsPerPage)}
                 onPageChange={setCurrentPage}
               />
 
