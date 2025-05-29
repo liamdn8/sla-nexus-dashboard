@@ -35,11 +35,27 @@ export const IssueDetails = ({ selectedIssue, getStatusColor }: IssueDetailsProp
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold">{selectedIssue.title}</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold">{selectedIssue.title}</h3>
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4 text-gray-500" />
+          </div>
+        </div>
         
-      </div>
-      <div className="text-xs text-gray-600">
+        <div className="text-xs text-gray-600">
           {selectedIssue.id} • {selectedIssue.epic}
+        </div>
+      </div>
+
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold">Issues List</h3>
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4 text-gray-500" />
+          </div>
+        </div>
+        <div className="text-xs text-gray-600">
+          {filteredIssues.length} issues
         </div>
       
       <div className="flex-1 overflow-y-auto p-4">
