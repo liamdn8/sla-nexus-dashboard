@@ -149,7 +149,7 @@ export const SLAApplicationVersions = ({
                       </td>
                       <td className="p-4">{version.id}</td>
                       <td className="p-4">
-                        <Badge className={getStatusColor(version.status)}>
+                        <Badge variant="outline">
                           {version.version}
                         </Badge>
                       </td>
