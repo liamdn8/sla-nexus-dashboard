@@ -179,7 +179,7 @@ export const SLAApplicationVersions = ({ applicationVersions, developmentVersion
                           onCheckedChange={(checked) => onAppSelection(version.id, !!checked)}
                         />
                       </td>
-                      <td className="p-4">{version.application}</td>
+                      <td className="p-4 text-sm text-gray-600">{version.application}</td>
                       <td className="p-4">
                         <Badge variant="outline">
                           {version.version}
