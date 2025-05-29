@@ -14,11 +14,13 @@ interface BookmarkNavigationProps {
 
 export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNavigationProps) => {
   const navigationItems: NavigationItem[] = [
-    { id: 'overview', title: 'Project Progress Overview', type: 'section' },
-    { id: 'sla-overview', title: 'SLA Overview', type: 'section' },
-    { id: 'sla-board', title: 'SLA Report Board', type: 'section' },
-    { id: 'applications', title: 'Application Status', type: 'section' },
-    { id: 'documents', title: 'Document Manager', type: 'section' }
+    { id: 'overview', title: 'Overview', type: 'section' },
+    { id: 'progress-checklist', title: 'Progress Checklist', type: 'section' },
+    { id: 'epic-stories', title: 'Epic Stories', type: 'section' },
+    { id: 'issues-summary', title: 'Issues Summary', type: 'section' },
+    { id: 'issues-management', title: 'Issues Management', type: 'section' },
+    { id: 'application-versions', title: 'Application Versions', type: 'section' },
+    { id: 'documents', title: 'Documents', type: 'section' }
   ];
 
   const categoryItems = [
