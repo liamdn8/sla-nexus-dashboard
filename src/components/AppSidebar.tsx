@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, List, Smartphone, Rocket } from "lucide-react";
+import { FileText, List, Smartphone, Rocket, Server } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navigationItems = [
@@ -34,6 +34,11 @@ const navigationItems = [
     title: "Build History",
     url: "/build-history",
     icon: FileText,
+  },
+  {
+    title: "Environment Management",
+    url: "/environment-management",
+    icon: Server,
   },
 ];
 

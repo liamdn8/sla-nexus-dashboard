@@ -10,6 +10,9 @@ import SLADetail from "./pages/SLADetail";
 import Applications from "./pages/Applications";
 import Releases from "./pages/Releases";
 import BuildHistory from "./pages/BuildHistory";
+import EnvironmentManagement from "./pages/EnvironmentManagement";
+import EnvironmentDetail from "./pages/EnvironmentDetail";
+import CNFDetail from "./pages/CNFDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +30,9 @@ const App = () => (
           <Route path="/applications" element={<Applications />} />
           <Route path="/releases" element={<Releases />} />
           <Route path="/build-history" element={<BuildHistory />} />
+          <Route path="/environment-management" element={<EnvironmentManagement />} />
+          <Route path="/environment-detail/:systemId" element={<EnvironmentDetail />} />
+          <Route path="/cnf-detail/:cnfId" element={<CNFDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
