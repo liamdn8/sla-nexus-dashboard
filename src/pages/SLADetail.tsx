@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { BookmarkNavigation } from "@/components/sla/BookmarkNavigation";
 import { SummaryStats } from "@/components/sla/SummaryStats";
-import { IssuesListCard } from "@/components/sla/IssuesListCard";
+import { IssuesManagement } from "@/components/sla/IssuesManagement";
 import { IssueDetails } from "@/components/sla/IssueDetails";
 import { DocumentManager } from "@/components/DocumentManager";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
