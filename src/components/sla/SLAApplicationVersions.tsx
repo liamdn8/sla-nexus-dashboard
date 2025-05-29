@@ -141,12 +141,7 @@ export const SLAApplicationVersions = ({
                 <tbody>
                   {applicationVersions.map((version, index) => (
                     <tr key={index} className="border-b hover:bg-gray-50">
-                      <td className="p-4">
-                        <Checkbox 
-                          checked={selectedApps.includes(version.application)}
-                          onCheckedChange={(checked) => onAppSelection(version.id, !!checked)}
-                        />
-                      </td>
+                      <td className="p-4 font-medium">{version.id}</td>
                       <td className="p-4">
                         <Checkbox 
                           checked={selectedApps.includes(version.id)}
