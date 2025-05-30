@@ -56,7 +56,7 @@ export const SLAOverviewSection = ({ sla }: SLAOverviewSectionProps) => {
 
   return (
     <div id="overview">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Overview</h1>
+      {/* <h1 className="text-2xl font-bold text-gray-900 mb-6">Overview</h1> */}
       
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
