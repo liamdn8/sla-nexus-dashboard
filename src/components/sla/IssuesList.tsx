@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Bug, FileText, ListTodo, Filter } from "lucide-react";
+import { Bug, FileText, ListTodo, Filter, AlertTriangle } from "lucide-react";
 
 interface Issue {
   id: string;
@@ -24,6 +25,9 @@ interface Issue {
   total: number;
   percentage: number;
   priority: string;
+  issueCode?: string;
+  startDate?: string;
+  dueDate?: string;
 }
 
 interface IssuesListProps {
@@ -49,12 +53,21 @@ export const IssuesList = ({
 }: IssuesListProps) => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [issueCodeFilter, setIssueCodeFilter] = useState<string>('');
+  const [assigneeFilter, setAssigneeFilter] = useState<string>('');
+
+  const isOverdue = (dueDate?: string, status?: string) => {
+    if (!dueDate || status === 'Done') return false;
+    return new Date(dueDate) < new Date();
+  };
 
   // Filter issues based on selected filters
   const filteredIssues = allIssues.filter(issue => {
     const statusMatch = statusFilter === 'all' || issue.status === statusFilter;
     const typeMatch = typeFilter === 'all' || issue.type === typeFilter;
-    return statusMatch && typeMatch;
+    const issueCodeMatch = !issueCodeFilter || (issue.issueCode && issue.issueCode.toLowerCase().includes(issueCodeFilter.toLowerCase()));
+    const assigneeMatch = !assigneeFilter || issue.assignee.toLowerCase().includes(assigneeFilter.toLowerCase());
+    return statusMatch && typeMatch && issueCodeMatch && assigneeMatch;
   });
 
   const itemsPerPage = 5; // Fixed to 5 issues per page
@@ -71,12 +84,31 @@ export const IssuesList = ({
     }
   };
 
+  const clearAllFilters = () => {
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setIssueCodeFilter('');
+    setAssigneeFilter('');
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Fixed Header with Filters */}
       <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold">Issues List</h3>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={clearAllFilters}
+            className="text-xs"
+          >
+            Clear Filters
+          </Button>
+        </div>
+        
+        {/* Filters Row */}
+        <div className="grid grid-cols-2 gap-2 mb-2">
           <div className="flex items-center space-x-2">
             <Filter className="h-4 w-4 text-gray-500" />
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -84,7 +116,7 @@ export const IssuesList = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="Done">Done</SelectItem>
                 <SelectItem value="In Progress">Active</SelectItem>
                 <SelectItem value="To Do">To Do</SelectItem>
@@ -96,14 +128,30 @@ export const IssuesList = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="Bug">Bug</SelectItem>
                 <SelectItem value="Story">Story</SelectItem>
                 <SelectItem value="Task">Task</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          
+          <div className="flex space-x-2">
+            <Input
+              placeholder="Issue Code"
+              value={issueCodeFilter}
+              onChange={(e) => setIssueCodeFilter(e.target.value)}
+              className="h-8 text-xs"
+            />
+            <Input
+              placeholder="Assignee"
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              className="h-8 text-xs"
+            />
+          </div>
         </div>
+        
         <div className="text-xs text-gray-600">
           {filteredIssues.length} issues
         </div>
@@ -114,23 +162,29 @@ export const IssuesList = ({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-20">Type</TableHead>
+              <TableHead className="w-16">Type</TableHead>
+              <TableHead className="w-24">Code</TableHead>
               <TableHead>Issue</TableHead>
-              <TableHead className="w-24">Status</TableHead>
-              <TableHead className="w-32">Progress</TableHead>
+              <TableHead className="w-20">Status</TableHead>
+              <TableHead className="w-24">Due Date</TableHead>
+              <TableHead className="w-20">Progress</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedIssues.map((issue) => (
               <TableRow
                 key={issue.id}
-                className={`cursor-pointer h-16 ${
-                  selectedIssue?.id === issue.id ? 'bg-blue-50' : 'hover:bg-gray-50'
+                className={`cursor-pointer h-14 ${
+                  selectedIssue?.id === issue.id 
+                    ? 'bg-blue-50' 
+                    : isOverdue(issue.dueDate, issue.status)
+                    ? 'bg-red-50 hover:bg-red-100'
+                    : 'hover:bg-gray-50'
                 }`}
                 onClick={() => onIssueSelect(issue)}
               >
                 <TableCell>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
                     {getTypeIcon(issue.type)}
                     <Badge className={getPriorityColor(issue.priority)} variant="outline">
                       {issue.priority.charAt(0)}
@@ -138,9 +192,14 @@ export const IssuesList = ({
                   </div>
                 </TableCell>
                 <TableCell>
+                  <div className="font-mono text-xs">
+                    {issue.issueCode || 'N/A'}
+                  </div>
+                </TableCell>
+                <TableCell>
                   <div>
                     <div className="font-medium text-sm">{issue.id}</div>
-                    <div className="text-sm text-gray-600 truncate max-w-48">{issue.title}</div>
+                    <div className="text-sm text-gray-600 truncate max-w-32">{issue.title}</div>
                     <div className="text-xs text-gray-500">{issue.assignee}</div>
                   </div>
                 </TableCell>
@@ -148,6 +207,19 @@ export const IssuesList = ({
                   <Badge className={getStatusColor(issue.status)} variant="outline">
                     {issue.status}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-1">
+                    <div className="text-xs">
+                      {issue.dueDate ? new Date(issue.dueDate).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                      }) : 'N/A'}
+                    </div>
+                    {isOverdue(issue.dueDate, issue.status) && (
+                      <AlertTriangle className="h-3 w-3 text-red-500" />
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
@@ -161,8 +233,8 @@ export const IssuesList = ({
             ))}
             {/* Fill empty rows to maintain consistent height */}
             {Array.from({ length: Math.max(0, 5 - paginatedIssues.length) }).map((_, index) => (
-              <TableRow key={`empty-${index}`} className="h-16">
-                <TableCell colSpan={4}></TableCell>
+              <TableRow key={`empty-${index}`} className="h-14">
+                <TableCell colSpan={6}></TableCell>
               </TableRow>
             ))}
           </TableBody>

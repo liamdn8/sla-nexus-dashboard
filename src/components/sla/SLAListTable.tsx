@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, AlertTriangle } from "lucide-react";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface SLAData {
@@ -23,6 +23,7 @@ interface SLAData {
   actualHours: number;
   deadline: string;
   assignedTeam: string;
+  overdueIssues?: number;
 }
 
 interface SLAListTableProps {
@@ -54,6 +55,10 @@ export const SLAListTable = ({ slaData }: SLAListTableProps) => {
     }
   };
 
+  const isOverdue = (deadline: string) => {
+    return new Date(deadline) < new Date();
+  };
+
   const handleRowClick = (slaId: string) => {
     navigate(`/sla-detail/${slaId}`);
   };
@@ -79,17 +84,22 @@ export const SLAListTable = ({ slaData }: SLAListTableProps) => {
                 <TableHead>Issues</TableHead>
                 <TableHead>Hours</TableHead>
                 <TableHead>Deadline</TableHead>
+                <TableHead>Overdue</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {currentData.map((sla) => {
                 const totalIssues = sla.totalStories + sla.totalTasks;
                 const completedIssues = sla.completedStories + sla.completedTasks;
+                const isDeadlineOverdue = isOverdue(sla.deadline);
+                const overdueCount = sla.overdueIssues || 0;
                 
                 return (
                   <TableRow 
                     key={sla.id} 
-                    className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    className={`hover:bg-gray-50 cursor-pointer transition-colors ${
+                      isDeadlineOverdue || overdueCount > 0 ? 'bg-red-50' : ''
+                    }`}
                     onClick={() => handleRowClick(sla.id)}
                   >
                     <TableCell className="font-medium text-blue-600">{sla.id}</TableCell>
@@ -133,7 +143,22 @@ export const SLAListTable = ({ slaData }: SLAListTableProps) => {
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4 text-gray-400" />
                         <span className="text-sm">{new Date(sla.deadline).toLocaleDateString()}</span>
+                        {isDeadlineOverdue && (
+                          <AlertTriangle className="h-4 w-4 text-red-500" />
+                        )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {overdueCount > 0 ? (
+                        <div className="flex items-center space-x-1">
+                          <AlertTriangle className="h-4 w-4 text-red-500" />
+                          <Badge variant="destructive" className="bg-red-100 text-red-800">
+                            {overdueCount}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500">-</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

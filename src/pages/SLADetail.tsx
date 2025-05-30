@@ -37,6 +37,9 @@ interface Issue {
   total: number;
   percentage: number;
   priority: string;
+  issueCode: string;
+  startDate: string;
+  dueDate: string;
 }
 
 const SLADetail = () => {
@@ -61,7 +64,10 @@ const SLADetail = () => {
       completed: 1,
       total: 3,
       percentage: 33,
-      priority: 'High'
+      priority: 'High',
+      issueCode: 'OCS-09',
+      startDate: '2024-01-15',
+      dueDate: '2024-01-25'
     },
     {
       id: 'ISS-002',
@@ -79,7 +85,10 @@ const SLADetail = () => {
       completed: 5,
       total: 5,
       percentage: 100,
-      priority: 'Medium'
+      priority: 'Medium',
+      issueCode: 'OCS-10',
+      startDate: '2024-01-10',
+      dueDate: '2024-01-20'
     },
     {
       id: 'ISS-003',
@@ -97,7 +106,10 @@ const SLADetail = () => {
       completed: 0,
       total: 2,
       percentage: 0,
-      priority: 'Low'
+      priority: 'Low',
+      issueCode: 'OCS-11',
+      startDate: '2024-02-01',
+      dueDate: '2024-01-30'
     }
   ]);
 

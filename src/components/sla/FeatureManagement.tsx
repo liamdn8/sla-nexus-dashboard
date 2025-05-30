@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Save, X } from "lucide-react";
+import { Plus, Edit, Save, X, AlertTriangle } from "lucide-react";
 
 interface Feature {
   id: string;
+  issueCode: string;
   summary: string;
   type: 'Epic' | 'Feature' | 'Enhancement' | 'Bug Fix';
   assignee: string;
@@ -27,6 +27,7 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
   const [features, setFeatures] = useState<Feature[]>([
     {
       id: 'FEAT-001',
+      issueCode: 'OCS-09',
       summary: 'User Authentication System',
       type: 'Feature',
       assignee: 'John Doe',
@@ -37,21 +38,23 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
     },
     {
       id: 'FEAT-002',
+      issueCode: 'OCS-10',
       summary: 'Payment Integration',
       type: 'Epic',
       assignee: 'Jane Smith',
       startDate: '2024-02-01',
-      dueDate: '2024-03-01',
+      dueDate: '2024-01-30',
       status: 'Planning',
       relatedIssues: ['ISS-003']
     },
     {
       id: 'FEAT-003',
+      issueCode: 'OCS-11',
       summary: 'Mobile Responsive Design',
       type: 'Enhancement',
       assignee: 'Bob Johnson',
       startDate: '2024-01-20',
-      dueDate: '2024-02-20',
+      dueDate: '2024-01-25',
       status: 'Testing',
       relatedIssues: []
     }
@@ -60,6 +63,11 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingFeature, setEditingFeature] = useState<Partial<Feature>>({});
   const [isCreating, setIsCreating] = useState(false);
+
+  const isOverdue = (dueDate: string, status: string) => {
+    if (status === 'Done') return false;
+    return new Date(dueDate) < new Date();
+  };
 
   const handleEdit = (feature: Feature) => {
     setEditingId(feature.id);
@@ -70,6 +78,7 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
     if (isCreating) {
       const newFeature: Feature = {
         id: `FEAT-${String(features.length + 1).padStart(3, '0')}`,
+        issueCode: editingFeature.issueCode || `OCS-${String(features.length + 12).padStart(2, '0')}`,
         summary: editingFeature.summary || '',
         type: editingFeature.type || 'Feature',
         assignee: editingFeature.assignee || '',
@@ -99,7 +108,10 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
           completed: 0,
           total: 3,
           percentage: 0,
-          priority: 'Medium'
+          priority: 'Medium',
+          issueCode: newFeature.issueCode,
+          startDate: newFeature.startDate,
+          dueDate: newFeature.dueDate
         }
       ];
 
@@ -172,6 +184,7 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-24">ID</TableHead>
+                  <TableHead className="w-32">Issue Code</TableHead>
                   <TableHead className="min-w-[200px]">Summary</TableHead>
                   <TableHead className="w-32">Type</TableHead>
                   <TableHead className="w-40">Assignee</TableHead>
@@ -186,6 +199,13 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
                 {isCreating && (
                   <TableRow>
                     <TableCell className="text-sm text-gray-500">Auto</TableCell>
+                    <TableCell>
+                      <Input
+                        value={editingFeature.issueCode || ''}
+                        onChange={(e) => setEditingFeature(prev => ({ ...prev, issueCode: e.target.value }))}
+                        placeholder="OCS-XX"
+                      />
+                    </TableCell>
                     <TableCell>
                       <Input
                         value={editingFeature.summary || ''}
@@ -260,8 +280,18 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
                   </TableRow>
                 )}
                 {features.map((feature) => (
-                  <TableRow key={feature.id}>
+                  <TableRow key={feature.id} className={isOverdue(feature.dueDate, feature.status) ? 'bg-red-50' : ''}>
                     <TableCell className="font-mono text-sm">{feature.id}</TableCell>
+                    <TableCell>
+                      {editingId === feature.id ? (
+                        <Input
+                          value={editingFeature.issueCode || feature.issueCode}
+                          onChange={(e) => setEditingFeature(prev => ({ ...prev, issueCode: e.target.value }))}
+                        />
+                      ) : (
+                        <span className="font-mono font-medium">{feature.issueCode}</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {editingId === feature.id ? (
                         <Input
@@ -312,7 +342,9 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
                           onChange={(e) => setEditingFeature(prev => ({ ...prev, startDate: e.target.value }))}
                         />
                       ) : (
-                        feature.startDate
+                        <div className="flex items-center space-x-1">
+                          <span>{feature.startDate}</span>
+                        </div>
                       )}
                     </TableCell>
                     <TableCell>
@@ -323,7 +355,12 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
                           onChange={(e) => setEditingFeature(prev => ({ ...prev, dueDate: e.target.value }))}
                         />
                       ) : (
-                        feature.dueDate
+                        <div className="flex items-center space-x-1">
+                          <span>{feature.dueDate}</span>
+                          {isOverdue(feature.dueDate, feature.status) && (
+                            <AlertTriangle className="h-4 w-4 text-red-500" />
+                          )}
+                        </div>
                       )}
                     </TableCell>
                     <TableCell>
