@@ -11,7 +11,7 @@ interface Feature {
   id: string;
   issueCode: string;
   summary: string;
-  type: 'Epic' | 'Feature' | 'Enhancement' | 'Bug Fix';
+  type: 'NVJ1-PTM' | 'NVJ2-PTM' | 'NVJ3-PTM' | 'GD_WEB1' | 'GD_WEB2' | 'GD_WEB3';
   assignee: string;
   startDate: string;
   dueDate: string;
@@ -29,7 +29,7 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
       id: 'FEAT-001',
       issueCode: 'OCS-09',
       summary: 'User Authentication System',
-      type: 'Feature',
+      type: 'NVJ1-PTM',
       assignee: 'John Doe',
       startDate: '2024-01-15',
       dueDate: '2024-02-15',
@@ -40,7 +40,7 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
       id: 'FEAT-002',
       issueCode: 'OCS-10',
       summary: 'Payment Integration',
-      type: 'Epic',
+      type: 'GD_WEB3',
       assignee: 'Jane Smith',
       startDate: '2024-02-01',
       dueDate: '2024-01-30',
@@ -51,7 +51,7 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
       id: 'FEAT-003',
       issueCode: 'OCS-11',
       summary: 'Mobile Responsive Design',
-      type: 'Enhancement',
+      type: 'NVJ1-PTM',
       assignee: 'Bob Johnson',
       startDate: '2024-01-20',
       dueDate: '2024-01-25',
