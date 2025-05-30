@@ -103,7 +103,7 @@ export const DocumentManager = () => {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold text-gray-900">Document Management</h2>
+        {/* <h2 className="text-2xl font-bold text-gray-900">Document Management</h2> */}
         
         <div className="grid grid-cols-1 gap-4">
           {documents.map((doc, index) => (

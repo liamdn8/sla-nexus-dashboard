@@ -192,7 +192,7 @@ const SLADetail = () => {
             
             {/* Overview Section */}
             <section id="overview">
-              <h1 className="text-2xl font-bold text-gray-900 mb-6">Overview</h1>
+              {/* <h1 className="text-2xl font-bold text-gray-900 mb-6">Overview</h1> */}
               <SLAOverviewSection sla={sla} />
             </section>
 
@@ -216,7 +216,7 @@ const SLADetail = () => {
 
             {/* Application Versions Section */}
             <section id="application-versions">
-              <h1 className="text-2xl font-bold text-gray-900 mb-6">Application Versions</h1>
+              {/* <h1 className="text-2xl font-bold text-gray-900 mb-6">Application Versions</h1 */}
               <SLAApplicationVersions 
                 applicationVersions={applicationVersions}
                 developmentVersions={developmentVersions}
