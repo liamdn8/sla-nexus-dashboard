@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -10,6 +9,7 @@ import { SLADocumentsSection } from "@/components/sla/SLADocumentsSection";
 import { IssuesManagementContainer } from "@/components/sla/IssuesManagementContainer";
 import { IssueSummaryCards } from "@/components/sla/IssueSummaryCards";
 import { BookmarkNavigation } from "@/components/sla/BookmarkNavigation";
+import { FeatureManagement } from "@/components/sla/FeatureManagement";
 
 interface ApplicationVersion {
   id: string;
@@ -44,45 +44,7 @@ const SLADetail = () => {
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeSection, setActiveSection] = useState<string>('overview');
-
-  // Mock SLA data
-  const sla = {
-    id: id || 'SLA-001',
-    title: 'E-commerce Platform SLA',
-    customer: 'Acme Corporation',
-    status: 'Active',
-    priority: 'High',
-    startDate: '2024-01-15',
-    endDate: '2024-12-31',
-    progress: 75,
-    description: 'Service Level Agreement for the main e-commerce platform including uptime guarantees, performance metrics, and support response times.',
-    requirements: [
-      'Minimum 99.9% uptime',
-      'Response time < 2 seconds',
-      'Support response within 4 hours',
-      'Monthly performance reports'
-    ],
-    metrics: {
-      uptime: 99.8,
-      responseTime: 1.8,
-      issuesResolved: 45,
-      totalIssues: 50
-    }
-  };
-
-  // Mock application versions data with the required 'application' property
-  const applicationVersions: ApplicationVersion[] = [
-    { id: 'v1', application: 'Frontend App', version: '2.1.0', status: 'Active', releaseDate: '2024-01-15', environment: 'Production' },
-    { id: 'v2', application: 'Backend API', version: '1.8.5', status: 'Active', releaseDate: '2024-01-10', environment: 'Production' },
-    { id: 'v3', application: 'Payment Service', version: '3.2.1', status: 'Staging', releaseDate: '2024-01-20', environment: 'Staging' },
-  ];
-
-  const developmentVersions: ApplicationVersion[] = [
-    { id: 'dv1', application: 'Frontend App', version: '2.2.0-beta', status: 'Development', releaseDate: '2024-01-25', environment: 'Development' },
-    { id: 'dv2', application: 'Backend API', version: '1.9.0-alpha', status: 'Development', releaseDate: '2024-01-22', environment: 'Development' },
-  ];
-
-  const allIssues: Issue[] = [
+  const [allIssues, setAllIssues] = useState<Issue[]>([
     {
       id: 'ISS-001',
       type: 'Bug',
@@ -137,7 +99,51 @@ const SLADetail = () => {
       percentage: 0,
       priority: 'Low'
     }
+  ]);
+
+  // Mock SLA data
+  const sla = {
+    id: id || 'SLA-001',
+    title: 'E-commerce Platform SLA',
+    customer: 'Acme Corporation',
+    status: 'Active',
+    priority: 'High',
+    startDate: '2024-01-15',
+    endDate: '2024-12-31',
+    progress: 75,
+    description: 'Service Level Agreement for the main e-commerce platform including uptime guarantees, performance metrics, and support response times.',
+    requirements: [
+      'Minimum 99.9% uptime',
+      'Response time < 2 seconds',
+      'Support response within 4 hours',
+      'Monthly performance reports'
+    ],
+    metrics: {
+      uptime: 99.8,
+      responseTime: 1.8,
+      issuesResolved: 45,
+      totalIssues: 50
+    }
+  };
+
+  // Mock application versions data with the required 'application' property
+  const applicationVersions: ApplicationVersion[] = [
+    { id: 'v1', application: 'Frontend App', version: '2.1.0', status: 'Active', releaseDate: '2024-01-15', environment: 'Production' },
+    { id: 'v2', application: 'Backend API', version: '1.8.5', status: 'Active', releaseDate: '2024-01-10', environment: 'Production' },
+    { id: 'v3', application: 'Payment Service', version: '3.2.1', status: 'Staging', releaseDate: '2024-01-20', environment: 'Staging' },
   ];
+
+  const developmentVersions: ApplicationVersion[] = [
+    { id: 'dv1', application: 'Frontend App', version: '2.2.0-beta', status: 'Development', releaseDate: '2024-01-25', environment: 'Development' },
+    { id: 'dv2', application: 'Backend API', version: '1.9.0-alpha', status: 'Development', releaseDate: '2024-01-22', environment: 'Development' },
+  ];
+
+  const handleFeatureCreate = (feature: any, relatedIssues: Issue[]) => {
+    // Add related issues to the issues list
+    setAllIssues(prev => [...prev, ...relatedIssues]);
+    console.log('Feature created:', feature);
+    console.log('Related issues added:', relatedIssues);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -201,6 +207,9 @@ const SLADetail = () => {
               <h1 className="text-2xl font-bold text-gray-900 mb-6">Category Summary</h1>
               <IssueSummaryCards allIssues={allIssues} />
             </section>
+
+            {/* Feature Management Section */}
+            <FeatureManagement onFeatureCreate={handleFeatureCreate} />
 
             {/* Issues Management Section */}
             <IssuesManagementContainer 

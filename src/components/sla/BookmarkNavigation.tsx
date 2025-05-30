@@ -16,6 +16,7 @@ export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNaviga
   const navigationItems: NavigationItem[] = [
     { id: 'overview', title: 'Overview', type: 'section' },
     { id: 'category-summary', title: 'Category Summary', type: 'section' },
+    { id: 'feature-management', title: 'Feature Management', type: 'section' },
     { id: 'issues-management', title: 'Issues Management', type: 'section' },
     { id: 'application-versions', title: 'Application Versions', type: 'section' },
     { id: 'documents', title: 'Documents', type: 'section' }
@@ -25,7 +26,8 @@ export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNaviga
     { name: "Development", completed: 9, total: 17, percentage: 53 },
     { name: "Testing", completed: 5, total: 8, percentage: 63 },
     { name: "Documentation", completed: 6, total: 7, percentage: 86 },
-    { name: "Deployment", completed: 4, total: 6, percentage: 67 }
+    { name: "Deployment", completed: 4, total: 6, percentage: 67 },
+    { name: "Features", completed: 2, total: 3, percentage: 67 }
   ];
 
   return (
@@ -80,10 +82,10 @@ export const BookmarkNavigation = ({ onNavigate, activeSection }: BookmarkNaviga
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-500 h-2 rounded-full" 
-              style={{ width: '66%' }}
+              style={{ width: '64%' }}
             ></div>
           </div>
-          <div className="text-xs text-gray-600 mt-1">66% Complete</div>
+          <div className="text-xs text-gray-600 mt-1">64% Complete</div>
         </div>
       </div>
     </div>
