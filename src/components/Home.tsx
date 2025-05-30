@@ -69,7 +69,7 @@ const Home = () => {
             </div>
           </div>
           <h1 className="text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            SLA Nexus
+            Xense Value Stream
             <span className="block text-5xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Management Platform
             </span>
