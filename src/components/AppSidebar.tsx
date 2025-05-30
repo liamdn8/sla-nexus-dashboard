@@ -11,8 +11,16 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User } from "lucide-react";
+import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User, Home } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+
+const mainItems = [
+  {
+    title: "Dashboard Home",
+    url: "/dashboard",
+    icon: Home,
+  },
+];
 
 const developmentItems = [
   {
@@ -102,6 +110,27 @@ export function AppSidebar() {
         <p className="text-sm text-gray-400 mt-1">Project Management</p>
       </SidebarHeader>
       <SidebarContent className="bg-gray-900">
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">Main</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavClick(item.url)}
+                    className={`cursor-pointer text-gray-300 hover:text-white hover:bg-gray-800 transition-colors ${
+                      isActive(item.url) ? 'bg-gray-800 text-white' : ''
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-400 text-xs uppercase tracking-wider">Development</SidebarGroupLabel>
           <SidebarGroupContent>

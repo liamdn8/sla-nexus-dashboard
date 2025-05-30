@@ -25,7 +25,7 @@ const Login = () => {
         title: "Login Successful",
         description: `Welcome back, ${username || 'User'}!`,
       });
-      navigate('/');
+      navigate('/dashboard');
       setIsLoading(false);
     }, 1000);
   };
@@ -39,7 +39,7 @@ const Login = () => {
         title: "SSO Login Successful",
         description: `Successfully logged in with ${provider}`,
       });
-      navigate('/');
+      navigate('/dashboard');
       setIsLoading(false);
     }, 1000);
   };
