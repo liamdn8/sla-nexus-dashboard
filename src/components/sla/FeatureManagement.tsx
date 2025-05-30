@@ -149,21 +149,6 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'epic':
-        return 'bg-purple-100 text-purple-800';
-      case 'feature':
-        return 'bg-blue-100 text-blue-800';
-      case 'enhancement':
-        return 'bg-green-100 text-green-800';
-      case 'bug fix':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
     <section id="feature-management">
       <Card>
@@ -314,14 +299,16 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Epic">Epic</SelectItem>
-                            <SelectItem value="Feature">Feature</SelectItem>
-                            <SelectItem value="Enhancement">Enhancement</SelectItem>
-                            <SelectItem value="Bug Fix">Bug Fix</SelectItem>
+                            <SelectItem value="NVJ1-PTM">NVJ1-PTM</SelectItem>
+                            <SelectItem value="NVJ2-PTM">NVJ2-PTM</SelectItem>
+                            <SelectItem value="NVJ3-PTM">NVJ3-PTM</SelectItem>
+                            <SelectItem value="GD_WEB1">GD_WEB1</SelectItem>
+                            <SelectItem value="GD_WEB2">GD_WEB2</SelectItem>
+                            <SelectItem value="GD_WEB3">GD_WEB3</SelectItem>
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={getTypeColor(feature.type)}>
+                        <Badge variant="outline">
                           {feature.type}
                         </Badge>
                       )}
