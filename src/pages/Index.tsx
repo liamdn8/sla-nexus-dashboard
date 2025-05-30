@@ -9,8 +9,10 @@ import { SLAReportBoard } from "@/components/SLAReportBoard";
 import { ApplicationStatus } from "@/components/ApplicationStatus";
 import { DocumentManager } from "@/components/DocumentManager";
 import { BookmarkNavigation } from "@/components/sla/BookmarkNavigation";
+import Home from "@/components/Home";
 
 const Index = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeSection, setActiveSection] = useState('overview');
 
   const handleNavigate = (sectionId: string) => {
@@ -21,6 +23,22 @@ const Index = () => {
     }
   };
 
+  // Check if user is logged in (for demo, we check localStorage)
+  React.useEffect(() => {
+    const checkLoginStatus = () => {
+      // For demo purposes, we'll show the home page initially
+      // In a real app, you'd check authentication tokens
+      setIsLoggedIn(false);
+    };
+    checkLoginStatus();
+  }, []);
+
+  // Show home page if not logged in
+  if (!isLoggedIn) {
+    return <Home />;
+  }
+
+  // Show dashboard if logged in
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
