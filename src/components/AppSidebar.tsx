@@ -106,8 +106,8 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-gray-200 bg-gray-900">
       <SidebarHeader className="px-6 py-4 border-b border-gray-700">
-        <h2 className="text-xl font-bold text-white">SLA Dashboard</h2>
-        <p className="text-sm text-sm mt-1">Project Management</p>
+        <h2 className="text-xl text-gray-900 font-bold">Xense DevOps</h2>
+        <p className="text-sm text-gray-600 mt-1">Value Stream Management</p>
       </SidebarHeader>
       <SidebarContent className="bg-gray-900">
         <SidebarGroup>
