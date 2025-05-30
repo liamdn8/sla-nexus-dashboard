@@ -222,10 +222,12 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Epic">Epic</SelectItem>
-                          <SelectItem value="Feature">Feature</SelectItem>
-                          <SelectItem value="Enhancement">Enhancement</SelectItem>
-                          <SelectItem value="Bug Fix">Bug Fix</SelectItem>
+                          <SelectItem value="NVJ1-PTM">NVJ1-PTM</SelectItem>
+                          <SelectItem value="NVJ2-PTM">NVJ2-PTM</SelectItem>
+                          <SelectItem value="NVJ3-PTM">NVJ3-PTM</SelectItem>
+                          <SelectItem value="GD_WEB1">GD_WEB1</SelectItem>
+                          <SelectItem value="GD_WEB2">GD_WEB2</SelectItem>
+                          <SelectItem value="GD_WEB3">GD_WEB3</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
