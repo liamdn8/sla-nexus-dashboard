@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import SLAList from "./pages/SLAList";
 import SLADetail from "./pages/SLADetail";
 import Applications from "./pages/Applications";
+import ApplicationDetail from "./pages/ApplicationDetail";
 import Releases from "./pages/Releases";
 import BuildHistory from "./pages/BuildHistory";
 import EnvironmentManagement from "./pages/EnvironmentManagement";
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/sla-list" element={<SLAList />} />
           <Route path="/sla-detail/:id" element={<SLADetail />} />
           <Route path="/applications" element={<Applications />} />
+          <Route path="/application-detail/:appId" element={<ApplicationDetail />} />
           <Route path="/releases" element={<Releases />} />
           <Route path="/build-history" element={<BuildHistory />} />
           <Route path="/environment-management" element={<EnvironmentManagement />} />

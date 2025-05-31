@@ -3,6 +3,7 @@ import React from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ApplicationStatus } from "@/components/ApplicationStatus";
+import { ApplicationSummary } from "@/components/ApplicationSummary";
 
 const Applications = () => {
   return (
@@ -20,7 +21,8 @@ const Applications = () => {
             </div>
           </div>
 
-          <div className="container mx-auto px-8 py-6">
+          <div className="container mx-auto px-8 py-6 space-y-6">
+            <ApplicationSummary />
             <ApplicationStatus />
           </div>
         </main>
