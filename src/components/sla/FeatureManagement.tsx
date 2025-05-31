@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,7 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
         id: `FEAT-${String(features.length + 1).padStart(3, '0')}`,
         issueCode: editingFeature.issueCode || `OCS-${String(features.length + 12).padStart(2, '0')}`,
         summary: editingFeature.summary || '',
-        type: editingFeature.type || 'Feature',
+        type: editingFeature.type || 'NVJ1-PTM',
         assignee: editingFeature.assignee || '',
         startDate: editingFeature.startDate || '',
         dueDate: editingFeature.dueDate || '',
@@ -200,7 +201,7 @@ export const FeatureManagement = ({ onFeatureCreate }: FeatureManagementProps) =
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={editingFeature.type || 'Feature'}
+                        value={editingFeature.type || 'NVJ1-PTM'}
                         onValueChange={(value: Feature['type']) => setEditingFeature(prev => ({ ...prev, type: value }))}
                       >
                         <SelectTrigger>
