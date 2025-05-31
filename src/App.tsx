@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import Applications from "./pages/Applications";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import Releases from "./pages/Releases";
 import BuildHistory from "./pages/BuildHistory";
+import BuildDetail from "./pages/BuildDetail";
 import EnvironmentManagement from "./pages/EnvironmentManagement";
 import EnvironmentDetail from "./pages/EnvironmentDetail";
 import CNFDetail from "./pages/CNFDetail";
@@ -43,6 +43,7 @@ const App = () => (
           <Route path="/application-detail/:appId" element={<ApplicationDetail />} />
           <Route path="/releases" element={<Releases />} />
           <Route path="/build-history" element={<BuildHistory />} />
+          <Route path="/build-detail/:buildId" element={<BuildDetail />} />
           <Route path="/environment-management" element={<EnvironmentManagement />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/cnf-list" element={<CNFList />} />

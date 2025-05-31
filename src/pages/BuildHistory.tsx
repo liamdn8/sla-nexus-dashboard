@@ -1,15 +1,40 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableSettings } from "@/components/ui/table-settings";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { CheckCircle, Circle, AlertCircle, Bug, Shield, Target, Zap, Calendar } from "lucide-react";
+import { CheckCircle, Circle, AlertCircle, Bug, Shield, Target, Zap, Calendar, Eye } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const BuildHistory = () => {
+  const navigate = useNavigate();
   const [selectedVersion, setSelectedVersion] = useState('vocs-4.0');
+  
+  const [columns, setColumns] = useState([
+    { key: 'id', label: '#', visible: true },
+    { key: 'application', label: 'Application', visible: true },
+    { key: 'buildId', label: 'Build ID', visible: true },
+    { key: 'branch', label: 'Branch', visible: true },
+    { key: 'version', label: 'Version', visible: true },
+    { key: 'commitId', label: 'Commit ID', visible: true },
+    { key: 'potentialBug', label: 'Potential Bug', visible: true },
+    { key: 'vulnerability', label: 'Vulnerability', visible: true },
+    { key: 'securityHotspots', label: 'Security Hotspots', visible: false },
+    { key: 'regression', label: 'Regression (P/F)', visible: false },
+    { key: 'stage', label: 'Stage', visible: true },
+    { key: 'createdDate', label: 'Created Date', visible: true },
+    { key: 'actions', label: 'Actions', visible: true }
+  ]);
+
+  const handleColumnToggle = (key: string) => {
+    setColumns(columns.map(col => 
+      col.key === key ? { ...col, visible: !col.visible } : col
+    ));
+  };
 
   const versions = [
     { id: 'vocs-4.0', name: 'vocs-4.0' },
@@ -108,6 +133,12 @@ const BuildHistory = () => {
     }
   };
 
+  const handleViewBuild = (buildId: string) => {
+    navigate(`/build-detail/${buildId}`);
+  };
+
+  const visibleColumns = columns.filter(col => col.visible);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
@@ -171,54 +202,84 @@ const BuildHistory = () => {
                 <h2 className="text-2xl font-semibold text-gray-900">
                   Builds ( 10 of 15564 )
                 </h2>
+                <TableSettings columns={columns} onColumnToggle={handleColumnToggle} />
               </div>
               <Card>
                 <CardContent className="p-0">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-gray-50">
-                        <TableHead className="w-12">#</TableHead>
-                        <TableHead>Application</TableHead>
-                        <TableHead>Build ID</TableHead>
-                        <TableHead>Branch</TableHead>
-                        <TableHead>Version</TableHead>
-                        <TableHead>Commit ID</TableHead>
-                        <TableHead>Potential Bug</TableHead>
-                        <TableHead>Vulnerability</TableHead>
-                        <TableHead>Security Hotspots</TableHead>
-                        <TableHead>Regression (P/F)</TableHead>
-                        <TableHead>Stage</TableHead>
-                        <TableHead>Created Date</TableHead>
+                        {visibleColumns.map((column) => (
+                          <TableHead key={column.key} className={column.key === 'id' ? 'w-12' : ''}>
+                            {column.label}
+                          </TableHead>
+                        ))}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {buildData.map((build) => (
                         <TableRow key={build.id} className="hover:bg-gray-50">
-                          <TableCell className="font-medium">{build.id}</TableCell>
-                          <TableCell className="text-blue-600 font-medium">{build.application}</TableCell>
-                          <TableCell className="text-blue-600">{build.buildId}</TableCell>
-                          <TableCell>{build.branch}</TableCell>
-                          <TableCell>{build.version}</TableCell>
-                          <TableCell className="font-mono text-sm">{build.commitId}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-1">
-                              <Bug className="h-3 w-3" />
-                              <span>{build.potentialBug}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>{build.vulnerability}</TableCell>
-                          <TableCell>{build.securityHotspots}</TableCell>
-                          <TableCell>{build.regression}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-1">
-                              {build.stage.map((status, index) => (
-                                <div key={index}>
-                                  {getStageIcon(status)}
-                                </div>
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-500">{build.createdDate}</TableCell>
+                          {visibleColumns.map((column) => {
+                            switch (column.key) {
+                              case 'id':
+                                return <TableCell key={column.key} className="font-medium">{build.id}</TableCell>;
+                              case 'application':
+                                return <TableCell key={column.key} className="text-blue-600 font-medium">{build.application}</TableCell>;
+                              case 'buildId':
+                                return <TableCell key={column.key} className="text-blue-600">{build.buildId}</TableCell>;
+                              case 'branch':
+                                return <TableCell key={column.key}>{build.branch}</TableCell>;
+                              case 'version':
+                                return <TableCell key={column.key}>{build.version}</TableCell>;
+                              case 'commitId':
+                                return <TableCell key={column.key} className="font-mono text-sm">{build.commitId}</TableCell>;
+                              case 'potentialBug':
+                                return (
+                                  <TableCell key={column.key}>
+                                    <div className="flex items-center space-x-1">
+                                      <Bug className="h-3 w-3" />
+                                      <span>{build.potentialBug}</span>
+                                    </div>
+                                  </TableCell>
+                                );
+                              case 'vulnerability':
+                                return <TableCell key={column.key}>{build.vulnerability}</TableCell>;
+                              case 'securityHotspots':
+                                return <TableCell key={column.key}>{build.securityHotspots}</TableCell>;
+                              case 'regression':
+                                return <TableCell key={column.key}>{build.regression}</TableCell>;
+                              case 'stage':
+                                return (
+                                  <TableCell key={column.key}>
+                                    <div className="flex items-center space-x-1">
+                                      {build.stage.map((status, index) => (
+                                        <div key={index}>
+                                          {getStageIcon(status)}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </TableCell>
+                                );
+                              case 'createdDate':
+                                return <TableCell key={column.key} className="text-sm text-gray-500">{build.createdDate}</TableCell>;
+                              case 'actions':
+                                return (
+                                  <TableCell key={column.key}>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm"
+                                      onClick={() => handleViewBuild(build.buildId)}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                      View
+                                    </Button>
+                                  </TableCell>
+                                );
+                              default:
+                                return null;
+                            }
+                          })}
                         </TableRow>
                       ))}
                     </TableBody>
