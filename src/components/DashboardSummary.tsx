@@ -50,11 +50,21 @@ export const DashboardSummary = () => {
     { title: "Uptime", value: "99.8%", trend: "+0.1%", icon: Activity, color: "text-green-600", bgColor: "bg-green-50" }
   ];
 
+  // NEW: Delivery Summary Data
+  const deliveryStats = [
+    { title: "Total Deliveries", value: "156", trend: "+12", icon: Truck, color: "text-purple-600", bgColor: "bg-purple-50" },
+    { title: "Image Deliveries", value: "89", trend: "+8", icon: Package, color: "text-blue-600", bgColor: "bg-blue-50" },
+    { title: "File Deliveries", value: "67", trend: "+4", icon: FileText, color: "text-green-600", bgColor: "bg-green-50" },
+    { title: "Success Rate", value: "96.2%", trend: "+1.2%", icon: CheckCircle, color: "text-emerald-600", bgColor: "bg-emerald-50" }
+  ];
+
   // Recent Activities
   const recentActivities = [
     { type: "SLA", title: "Mobile App Enhancement SLA completed", time: "2 hours ago", status: "completed" },
+    { type: "Delivery", title: "product-catalog:4.5.1 delivered to TechCorp", time: "3 hours ago", status: "success" },
     { type: "Release", title: "Version 2.1.4 deployed to production", time: "4 hours ago", status: "success" },
     { type: "Build", title: "Web Portal build failed - fixed", time: "6 hours ago", status: "warning" },
+    { type: "Delivery", title: "ConfigMap delivery to InnovateLtd failed", time: "7 hours ago", status: "warning" },
     { type: "Environment", title: "New staging environment created", time: "8 hours ago", status: "info" },
     { type: "Customer", title: "TechCorp onboarded successfully", time: "1 day ago", status: "completed" }
   ];
@@ -167,6 +177,45 @@ export const DashboardSummary = () => {
           </Button>
           <Button onClick={() => navigate('/cnf-list')} variant="outline">
             CNF Management
+          </Button>
+        </div>
+      </div>
+
+      {/* NEW: Delivery Section */}
+      <div>
+        <div className="flex items-center gap-2 mb-6">
+          <Truck className="h-6 w-6 text-purple-600" />
+          <h2 className="text-2xl font-bold text-gray-900">Delivery Overview</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {deliveryStats.map((stat, index) => (
+            <Card key={index} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  {stat.title}
+                </CardTitle>
+                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {stat.value}
+                </div>
+                <p className="text-sm text-green-600 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  {stat.trend} from last month
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="flex gap-4">
+          <Button onClick={() => navigate('/delivery')} variant="outline">
+            Manage Deliveries
+          </Button>
+          <Button onClick={() => navigate('/delivery')} variant="outline">
+            View History
           </Button>
         </div>
       </div>
