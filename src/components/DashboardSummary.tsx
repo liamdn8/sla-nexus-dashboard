@@ -18,7 +18,9 @@ import {
   Building,
   FileText,
   Activity,
-  LogOut
+  LogOut,
+  Truck,
+  Package
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
