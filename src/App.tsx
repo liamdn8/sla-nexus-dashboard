@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,6 +25,7 @@ import DevelopmentMapping from "./pages/settings/DevelopmentMapping";
 import SystemSettings from "./pages/settings/SystemSettings";
 import AccountSettings from "./pages/settings/AccountSettings";
 import Login from "./pages/Login";
+import Projects from "./pages/Projects";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +39,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/projects" element={<Projects />} />
           <Route path="/sla-list" element={<SLAList />} />
           <Route path="/sla-detail/:id" element={<SLADetail />} />
           <Route path="/applications" element={<Applications />} />

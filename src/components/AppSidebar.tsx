@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Sidebar,
@@ -11,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User, Home } from "lucide-react";
+import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User, Home, FolderOpen } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const mainItems = [
@@ -19,6 +18,11 @@ const mainItems = [
     title: "Dashboard Home",
     url: "/dashboard",
     icon: Home,
+  },
+  {
+    title: "Projects",
+    url: "/projects",
+    icon: FolderOpen,
   },
 ];
 
