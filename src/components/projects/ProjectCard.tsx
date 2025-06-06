@@ -7,13 +7,10 @@ import { Progress } from "@/components/ui/progress";
 import { 
   User, 
   Key, 
-  FileText, 
-  Smartphone, 
   Clock, 
   MoreVertical,
   Eye,
-  CheckCircle,
-  AlertCircle
+  TrendingUp
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -39,52 +36,61 @@ interface ProjectCardProps {
 }
 
 export const ProjectCard = ({ project }: ProjectCardProps) => {
-  // Mock SLA data for each project
-  const slaData = {
-    totalSLAs: project.totalSLAs,
-    inProgressSLAs: Math.floor(project.totalSLAs * 0.6),
-    completedSLAs: Math.floor(project.totalSLAs * 0.3),
-    todoSLAs: Math.floor(project.totalSLAs * 0.1),
-    totalTasks: project.totalSLAs * 15, // Approximate tasks per SLA
-    completedTasks: Math.floor(project.totalSLAs * 15 * 0.27), // 27% completion rate from image
-  };
-
-  const completionPercentage = Math.round((slaData.completedTasks / slaData.totalTasks) * 100);
-
-  const getStatusColor = (status: string) => {
+  // Simplified SLA data
+  const completionRate = Math.floor(Math.random() * 40) + 30; // 30-70% range
+  const activeSLAs = Math.floor(project.totalSLAs * 0.7);
+  
+  const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'maintenance': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': 
+        return { 
+          color: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+          dot: 'bg-emerald-500'
+        };
+      case 'inactive': 
+        return { 
+          color: 'bg-gray-100 text-gray-600 border-gray-200',
+          dot: 'bg-gray-400'
+        };
+      case 'maintenance': 
+        return { 
+          color: 'bg-amber-100 text-amber-700 border-amber-200',
+          dot: 'bg-amber-500'
+        };
+      default: 
+        return { 
+          color: 'bg-gray-100 text-gray-600 border-gray-200',
+          dot: 'bg-gray-400'
+        };
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active': return '●';
-      case 'inactive': return '○';
-      case 'maintenance': return '⚠';
-      default: return '○';
-    }
-  };
+  const statusConfig = getStatusConfig(project.status);
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
-      <CardHeader className="pb-3">
+    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-sm bg-gradient-to-br from-white to-gray-50/50">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
-              {project.name}
-            </CardTitle>
-            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-              <Key className="h-4 w-4" />
-              <span className="font-mono font-medium">{project.key}</span>
+            <div className="flex items-center gap-3 mb-2">
+              <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                {project.name}
+              </CardTitle>
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full border text-xs font-medium ${statusConfig.color}`}>
+                <div className={`w-2 h-2 rounded-full ${statusConfig.dot}`}></div>
+                {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Key className="h-3.5 w-3.5" />
+              <span className="font-mono font-semibold text-gray-700">{project.key}</span>
             </div>
           </div>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -98,87 +104,60 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        
-        <Badge className={getStatusColor(project.status)}>
-          <span className="mr-1">{getStatusIcon(project.status)}</span>
-          {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-        </Badge>
       </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* SLA Overview Section */}
-        <div className="bg-blue-50 p-3 rounded-lg">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-900">SLA Overview (June)</span>
-            <Button variant="link" size="sm" className="h-auto p-0 text-blue-600 text-xs">
-              View SLAs →
-            </Button>
+      <CardContent className="space-y-5">
+        {/* SLA Progress Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+              <span className="font-semibold text-blue-900">SLA Progress</span>
+            </div>
+            <span className="text-xs text-blue-600 font-medium">{completionRate}% Complete</span>
           </div>
           
-          {/* SLA Stats Grid */}
-          <div className="grid grid-cols-3 gap-4 mb-3">
+          <Progress value={completionRate} className="h-2.5 mb-3 bg-blue-100" />
+          
+          <div className="flex justify-between text-sm">
             <div className="text-center">
-              <div className="text-xl font-bold text-blue-900">{slaData.totalSLAs}</div>
-              <div className="text-xs text-blue-700">Total</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-bold text-blue-600">{slaData.inProgressSLAs}</div>
-              <div className="text-xs text-blue-700">In progress</div>
+              <div className="font-bold text-lg text-blue-900">{project.totalSLAs}</div>
+              <div className="text-xs text-blue-600">Total SLAs</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-bold text-gray-600">{slaData.todoSLAs}</div>
-              <div className="text-xs text-blue-700">To-do</div>
+              <div className="font-bold text-lg text-emerald-600">{activeSLAs}</div>
+              <div className="text-xs text-blue-600">Active</div>
             </div>
-          </div>
-
-          {/* Task Completion Progress */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-blue-800">Task Completed: ({slaData.completedTasks}/{slaData.totalTasks})</span>
-              <span className="font-medium text-blue-900">{completionPercentage}%</span>
+            <div className="text-center">
+              <div className="font-bold text-lg text-purple-600">{project.totalApplications}</div>
+              <div className="text-xs text-blue-600">Apps</div>
             </div>
-            <Progress value={completionPercentage} className="h-2" />
           </div>
         </div>
 
         {/* Project Admin */}
-        <div className="flex items-center gap-2 text-sm">
-          <User className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-600">Admin:</span>
-          <span className="font-medium text-gray-900">{project.admin}</span>
-        </div>
-
-        {/* Project Overview Stats */}
-        <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-100">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1">
-              <FileText className="h-3 w-3" />
-              SLAs
+        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+              {project.admin.charAt(0)}
             </div>
-            <div className="text-lg font-semibold text-gray-900">{project.totalSLAs}</div>
+            <div>
+              <div className="text-sm font-medium text-gray-900">{project.admin}</div>
+              <div className="text-xs text-gray-500">Project Admin</div>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-1">
-              <Smartphone className="h-3 w-3" />
-              Apps
-            </div>
-            <div className="text-lg font-semibold text-gray-900">{project.totalApplications}</div>
+          
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            <Clock className="h-3 w-3" />
+            <span>{project.lastActivity}</span>
           </div>
         </div>
 
-        {/* Last Activity */}
-        <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
-          <Clock className="h-3 w-3" />
-          <span>Last activity: {project.lastActivity}</span>
-        </div>
-
-        {/* Actions */}
-        <div className="pt-2">
-          <Button variant="outline" size="sm" className="w-full">
-            <Eye className="h-4 w-4 mr-2" />
-            View project
-          </Button>
-        </div>
+        {/* Action Button */}
+        <Button variant="outline" size="sm" className="w-full group-hover:bg-blue-50 group-hover:border-blue-200 group-hover:text-blue-700 transition-colors">
+          <Eye className="h-4 w-4 mr-2" />
+          View Project Details
+        </Button>
       </CardContent>
     </Card>
   );
