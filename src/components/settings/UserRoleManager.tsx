@@ -1,12 +1,9 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash, Users, Group, Shield, User } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Users, Shield } from "lucide-react";
+import { UserManagement } from './UserManagement';
+import { RoleManagement } from './RoleManagement';
 
 interface UserData {
   id: string;
@@ -15,6 +12,7 @@ interface UserData {
   role: string;
   groups: string[];
   isActive: boolean;
+  lastLogin?: string;
 }
 
 interface RoleData {
@@ -22,18 +20,10 @@ interface RoleData {
   name: string;
   description: string;
   permissions: string[];
-}
-
-interface GroupData {
-  id: string;
-  name: string;
-  description: string;
-  members: string[];
+  userCount?: number;
 }
 
 export const UserRoleManager = () => {
-  const { toast } = useToast();
-  
   const [users, setUsers] = useState<UserData[]>([
     {
       id: '1',
@@ -42,6 +32,7 @@ export const UserRoleManager = () => {
       role: 'admin',
       groups: ['developers', 'managers'],
       isActive: true,
+      lastLogin: '2024-01-15 10:30 AM',
     },
     {
       id: '2',
@@ -50,6 +41,16 @@ export const UserRoleManager = () => {
       role: 'developer',
       groups: ['developers'],
       isActive: true,
+      lastLogin: '2024-01-14 2:15 PM',
+    },
+    {
+      id: '3',
+      name: 'Mike Johnson',
+      email: 'mike.johnson@company.com',
+      role: 'viewer',
+      groups: [],
+      isActive: false,
+      lastLogin: '2024-01-10 9:45 AM',
     },
   ]);
 
@@ -57,146 +58,44 @@ export const UserRoleManager = () => {
     {
       id: '1',
       name: 'admin',
-      description: 'Full system access',
-      permissions: ['read', 'write', 'delete', 'admin'],
+      description: 'Full system access with all permissions',
+      permissions: ['read', 'write', 'delete', 'admin', 'manage_users', 'manage_projects'],
+      userCount: 1,
     },
     {
       id: '2',
       name: 'developer',
-      description: 'Development access',
-      permissions: ['read', 'write'],
+      description: 'Development access with read and write permissions',
+      permissions: ['read', 'write', 'view_reports'],
+      userCount: 1,
+    },
+    {
+      id: '3',
+      name: 'viewer',
+      description: 'Read-only access to system resources',
+      permissions: ['read'],
+      userCount: 1,
     },
   ]);
 
-  const [groups, setGroups] = useState<GroupData[]>([
-    {
-      id: '1',
-      name: 'developers',
-      description: 'Development team',
-      members: ['1', '2'],
-    },
-    {
-      id: '2',
-      name: 'managers',
-      description: 'Management team',
-      members: ['1'],
-    },
-  ]);
-
-  // User management state
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserData | null>(null);
-
-  // Role management state
-  const [showRoleForm, setShowRoleForm] = useState(false);
-  const [editingRole, setEditingRole] = useState<RoleData | null>(null);
-
-  // Group management state
-  const [showGroupForm, setShowGroupForm] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<GroupData | null>(null);
-
-  // User management functions
-  const handleAddUser = () => {
-    setEditingUser({
-      id: '',
-      name: '',
-      email: '',
-      role: 'developer',
-      groups: [],
-      isActive: true,
-    });
-    setShowUserForm(true);
+  const handleUpdateUsers = (updatedUsers: UserData[]) => {
+    setUsers(updatedUsers);
+    // Update user counts in roles
+    const updatedRoles = roles.map(role => ({
+      ...role,
+      userCount: updatedUsers.filter(user => user.role === role.name).length
+    }));
+    setRoles(updatedRoles);
   };
 
-  const handleSaveUser = () => {
-    if (!editingUser) return;
-
-    if (editingUser.id) {
-      setUsers(users => users.map(user => user.id === editingUser.id ? editingUser : user));
-      toast({ title: "User Updated", description: "User has been updated successfully." });
-    } else {
-      const newUser = { ...editingUser, id: Date.now().toString() };
-      setUsers(users => [...users, newUser]);
-      toast({ title: "User Added", description: "New user has been added successfully." });
-    }
-
-    setShowUserForm(false);
-    setEditingUser(null);
-  };
-
-  const handleDeleteUser = (id: string) => {
-    setUsers(users => users.filter(user => user.id !== id));
-    toast({ title: "User Deleted", description: "User has been deleted successfully." });
-  };
-
-  // Role management functions
-  const handleAddRole = () => {
-    setEditingRole({
-      id: '',
-      name: '',
-      description: '',
-      permissions: [],
-    });
-    setShowRoleForm(true);
-  };
-
-  const handleSaveRole = () => {
-    if (!editingRole) return;
-
-    if (editingRole.id) {
-      setRoles(roles => roles.map(role => role.id === editingRole.id ? editingRole : role));
-      toast({ title: "Role Updated", description: "Role has been updated successfully." });
-    } else {
-      const newRole = { ...editingRole, id: Date.now().toString() };
-      setRoles(roles => [...roles, newRole]);
-      toast({ title: "Role Added", description: "New role has been added successfully." });
-    }
-
-    setShowRoleForm(false);
-    setEditingRole(null);
-  };
-
-  const handleDeleteRole = (id: string) => {
-    setRoles(roles => roles.filter(role => role.id !== id));
-    toast({ title: "Role Deleted", description: "Role has been deleted successfully." });
-  };
-
-  // Group management functions
-  const handleAddGroup = () => {
-    setEditingGroup({
-      id: '',
-      name: '',
-      description: '',
-      members: [],
-    });
-    setShowGroupForm(true);
-  };
-
-  const handleSaveGroup = () => {
-    if (!editingGroup) return;
-
-    if (editingGroup.id) {
-      setGroups(groups => groups.map(group => group.id === editingGroup.id ? editingGroup : group));
-      toast({ title: "Group Updated", description: "Group has been updated successfully." });
-    } else {
-      const newGroup = { ...editingGroup, id: Date.now().toString() };
-      setGroups(groups => [...groups, newGroup]);
-      toast({ title: "Group Added", description: "New group has been added successfully." });
-    }
-
-    setShowGroupForm(false);
-    setEditingGroup(null);
-  };
-
-  const handleDeleteGroup = (id: string) => {
-    setGroups(groups => groups.filter(group => group.id !== id));
-    toast({ title: "Group Deleted", description: "Group has been deleted successfully." });
+  const handleUpdateRoles = (updatedRoles: RoleData[]) => {
+    setRoles(updatedRoles);
   };
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="users" className="flex items-center space-x-2">
             <Users className="h-4 w-4" />
             <span>Users</span>
@@ -205,300 +104,21 @@ export const UserRoleManager = () => {
             <Shield className="h-4 w-4" />
             <span>Roles</span>
           </TabsTrigger>
-          <TabsTrigger value="groups" className="flex items-center space-x-2">
-            <Group className="h-4 w-4" />
-            <span>Groups</span>
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>User Management</CardTitle>
-                  <CardDescription>Manage system users and their access.</CardDescription>
-                </div>
-                <Button onClick={handleAddUser}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add User
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {showUserForm && editingUser && (
-                <Card className="mb-6 border-dashed">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {editingUser.id ? 'Edit User' : 'Add New User'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="user-name">Name</Label>
-                        <Input
-                          id="user-name"
-                          value={editingUser.name}
-                          onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
-                          placeholder="Enter user name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="user-email">Email</Label>
-                        <Input
-                          id="user-email"
-                          type="email"
-                          value={editingUser.email}
-                          onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                          placeholder="Enter email address"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="user-role">Role</Label>
-                      <select
-                        id="user-role"
-                        value={editingUser.role}
-                        onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      >
-                        {roles.map(role => (
-                          <option key={role.id} value={role.name}>{role.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button onClick={handleSaveUser}>Save</Button>
-                      <Button variant="outline" onClick={() => setShowUserForm(false)}>Cancel</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div className="space-y-4">
-                {users.map((user) => (
-                  <Card key={user.id} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <User className="h-8 w-8 text-muted-foreground" />
-                          <div>
-                            <h3 className="font-semibold">{user.name}</h3>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
-                            <p className="text-xs text-muted-foreground">Role: {user.role}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingUser(user);
-                              setShowUserForm(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteUser(user.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <UserManagement
+            users={users}
+            roles={roles}
+            onUpdateUsers={handleUpdateUsers}
+          />
         </TabsContent>
 
         <TabsContent value="roles">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Role Management</CardTitle>
-                  <CardDescription>Define roles and permissions.</CardDescription>
-                </div>
-                <Button onClick={handleAddRole}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Role
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {showRoleForm && editingRole && (
-                <Card className="mb-6 border-dashed">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {editingRole.id ? 'Edit Role' : 'Add New Role'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="role-name">Role Name</Label>
-                      <Input
-                        id="role-name"
-                        value={editingRole.name}
-                        onChange={(e) => setEditingRole({...editingRole, name: e.target.value})}
-                        placeholder="Enter role name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="role-description">Description</Label>
-                      <Input
-                        id="role-description"
-                        value={editingRole.description}
-                        onChange={(e) => setEditingRole({...editingRole, description: e.target.value})}
-                        placeholder="Enter role description"
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button onClick={handleSaveRole}>Save</Button>
-                      <Button variant="outline" onClick={() => setShowRoleForm(false)}>Cancel</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div className="space-y-4">
-                {roles.map((role) => (
-                  <Card key={role.id} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <Shield className="h-8 w-8 text-muted-foreground" />
-                          <div>
-                            <h3 className="font-semibold">{role.name}</h3>
-                            <p className="text-sm text-muted-foreground">{role.description}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Permissions: {role.permissions.join(', ')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingRole(role);
-                              setShowRoleForm(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteRole(role.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="groups">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Group Management</CardTitle>
-                  <CardDescription>Manage user groups and teams.</CardDescription>
-                </div>
-                <Button onClick={handleAddGroup}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Group
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {showGroupForm && editingGroup && (
-                <Card className="mb-6 border-dashed">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {editingGroup.id ? 'Edit Group' : 'Add New Group'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="group-name">Group Name</Label>
-                      <Input
-                        id="group-name"
-                        value={editingGroup.name}
-                        onChange={(e) => setEditingGroup({...editingGroup, name: e.target.value})}
-                        placeholder="Enter group name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="group-description">Description</Label>
-                      <Input
-                        id="group-description"
-                        value={editingGroup.description}
-                        onChange={(e) => setEditingGroup({...editingGroup, description: e.target.value})}
-                        placeholder="Enter group description"
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button onClick={handleSaveGroup}>Save</Button>
-                      <Button variant="outline" onClick={() => setShowGroupForm(false)}>Cancel</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div className="space-y-4">
-                {groups.map((group) => (
-                  <Card key={group.id} className="border">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <Group className="h-8 w-8 text-muted-foreground" />
-                          <div>
-                            <h3 className="font-semibold">{group.name}</h3>
-                            <p className="text-sm text-muted-foreground">{group.description}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Members: {group.members.length}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingGroup(group);
-                              setShowGroupForm(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteGroup(group.id)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <RoleManagement
+            roles={roles}
+            onUpdateRoles={handleUpdateRoles}
+          />
         </TabsContent>
       </Tabs>
     </div>

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash, RefreshCw, Link } from "lucide-react";
+import { Plus, Edit, Trash, RefreshCw, Link, Lock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SystemLinkDialog } from './SystemLinkDialog';
 
@@ -13,10 +13,14 @@ interface SystemLink {
   type: 'jira' | 'confluence' | 'jenkins' | 'harbor' | 'mano';
   baseUrl: string;
   description: string;
+  credentialType: 'admin_shared' | 'user_specific';
   authMethod: 'api_token' | 'username_password';
-  username?: string;
-  apiToken?: string;
-  password?: string;
+  adminUsername?: string;
+  adminApiToken?: string;
+  adminPassword?: string;
+  userUsername?: string;
+  userApiToken?: string;
+  userPassword?: string;
   isActive: boolean;
 }
 
@@ -29,8 +33,9 @@ export const SystemLinksManager = () => {
       type: 'jira',
       baseUrl: 'https://company.atlassian.net',
       description: 'Primary Jira instance for project management',
+      credentialType: 'admin_shared',
       authMethod: 'api_token',
-      username: 'admin@company.com',
+      adminUsername: 'admin@company.com',
       isActive: true,
     },
     {
@@ -39,8 +44,9 @@ export const SystemLinksManager = () => {
       type: 'jenkins',
       baseUrl: 'https://jenkins.company.com',
       description: 'Main Jenkins instance for builds',
+      credentialType: 'user_specific',
       authMethod: 'username_password',
-      username: 'jenkins-admin',
+      userUsername: 'john.doe',
       isActive: false,
     },
   ]);
@@ -162,9 +168,18 @@ export const SystemLinksManager = () => {
                       <span className="text-2xl">{getTypeIcon(link.type)}</span>
                       <div>
                         <CardTitle className="text-lg">{link.name}</CardTitle>
-                        <Badge className={getTypeBadgeColor(link.type)}>
-                          {link.type.toUpperCase()}
-                        </Badge>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge className={getTypeBadgeColor(link.type)}>
+                            {link.type.toUpperCase()}
+                          </Badge>
+                          <Badge variant={link.credentialType === 'admin_shared' ? 'default' : 'outline'}>
+                            {link.credentialType === 'admin_shared' ? (
+                              <><Lock className="h-3 w-3 mr-1" />Shared</>
+                            ) : (
+                              <><User className="h-3 w-3 mr-1" />User</>
+                            )}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-1">
@@ -194,11 +209,11 @@ export const SystemLinksManager = () => {
                     <div className="text-sm text-muted-foreground">
                       <strong>Auth:</strong> {link.authMethod.replace('_', ' ')}
                     </div>
-                    {link.username && (
-                      <div className="text-sm text-muted-foreground">
-                        <strong>Username:</strong> {link.username}
-                      </div>
-                    )}
+                    <div className="text-sm text-muted-foreground">
+                      <strong>Username:</strong> {
+                        link.credentialType === 'admin_shared' ? link.adminUsername : link.userUsername
+                      }
+                    </div>
                     <div className="flex items-center justify-between pt-2">
                       <div className="flex items-center space-x-2">
                         <div className={`w-2 h-2 rounded-full ${link.isActive ? 'bg-green-500' : 'bg-red-500'}`} />

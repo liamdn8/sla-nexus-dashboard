@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Lock, User } from "lucide-react";
 
 interface SystemLink {
   id: string;
@@ -12,10 +15,16 @@ interface SystemLink {
   type: 'jira' | 'confluence' | 'jenkins' | 'harbor' | 'mano';
   baseUrl: string;
   description: string;
+  credentialType: 'admin_shared' | 'user_specific';
   authMethod: 'api_token' | 'username_password';
-  username?: string;
-  apiToken?: string;
-  password?: string;
+  // Admin shared credentials
+  adminUsername?: string;
+  adminApiToken?: string;
+  adminPassword?: string;
+  // User specific credentials (would be per user in real app)
+  userUsername?: string;
+  userApiToken?: string;
+  userPassword?: string;
   isActive: boolean;
 }
 
@@ -32,10 +41,14 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
     type: 'jira',
     baseUrl: '',
     description: '',
+    credentialType: 'admin_shared',
     authMethod: 'api_token',
-    username: '',
-    apiToken: '',
-    password: '',
+    adminUsername: '',
+    adminApiToken: '',
+    adminPassword: '',
+    userUsername: '',
+    userApiToken: '',
+    userPassword: '',
     isActive: true,
   });
 
@@ -46,10 +59,14 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
         type: link.type,
         baseUrl: link.baseUrl,
         description: link.description,
+        credentialType: link.credentialType,
         authMethod: link.authMethod,
-        username: link.username || '',
-        apiToken: link.apiToken || '',
-        password: link.password || '',
+        adminUsername: link.adminUsername || '',
+        adminApiToken: link.adminApiToken || '',
+        adminPassword: link.adminPassword || '',
+        userUsername: link.userUsername || '',
+        userApiToken: link.userApiToken || '',
+        userPassword: link.userPassword || '',
         isActive: link.isActive,
       });
     } else {
@@ -58,10 +75,14 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
         type: 'jira',
         baseUrl: '',
         description: '',
+        credentialType: 'admin_shared',
         authMethod: 'api_token',
-        username: '',
-        apiToken: '',
-        password: '',
+        adminUsername: '',
+        adminApiToken: '',
+        adminPassword: '',
+        userUsername: '',
+        userApiToken: '',
+        userPassword: '',
         isActive: true,
       });
     }
@@ -73,7 +94,7 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {link ? 'Edit System Link' : 'Add New System Link'}
@@ -84,9 +105,10 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
         </DialogHeader>
 
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="authentication">Authentication</TabsTrigger>
+            <TabsTrigger value="credentials">Credentials</TabsTrigger>
+            <TabsTrigger value="permissions">Permissions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4">
@@ -138,53 +160,170 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
             </div>
           </TabsContent>
 
-          <TabsContent value="authentication" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="authMethod">Authentication Method</Label>
-              <select
-                id="authMethod"
-                value={formData.authMethod}
-                onChange={(e) => setFormData({ ...formData, authMethod: e.target.value as any })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="api_token">API Token</option>
-                <option value="username_password">Username/Password</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="username">Username/Email</Label>
-              <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="Enter username or email"
-              />
-            </div>
-
-            {formData.authMethod === 'api_token' ? (
+          <TabsContent value="credentials" className="space-y-4">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="apiToken">API Token</Label>
-                <Input
-                  id="apiToken"
-                  type="password"
-                  value={formData.apiToken}
-                  onChange={(e) => setFormData({ ...formData, apiToken: e.target.value })}
-                  placeholder="Enter API token"
-                />
+                <Label>Credential Type</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <Card 
+                    className={`cursor-pointer border-2 ${formData.credentialType === 'admin_shared' ? 'border-primary bg-primary/5' : 'border-border'}`}
+                    onClick={() => setFormData({ ...formData, credentialType: 'admin_shared' })}
+                  >
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center space-x-2">
+                        <Lock className="h-4 w-4" />
+                        <span>Admin Shared</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xs text-muted-foreground">
+                        Single set of credentials shared across all users
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card 
+                    className={`cursor-pointer border-2 ${formData.credentialType === 'user_specific' ? 'border-primary bg-primary/5' : 'border-border'}`}
+                    onClick={() => setFormData({ ...formData, credentialType: 'user_specific' })}
+                  >
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <span>User Specific</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xs text-muted-foreground">
+                        Each user provides their own credentials
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
-            ) : (
+
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="Enter password"
-                />
+                <Label htmlFor="authMethod">Authentication Method</Label>
+                <select
+                  id="authMethod"
+                  value={formData.authMethod}
+                  onChange={(e) => setFormData({ ...formData, authMethod: e.target.value as any })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="api_token">API Token</option>
+                  <option value="username_password">Username/Password</option>
+                </select>
               </div>
-            )}
+
+              {formData.credentialType === 'admin_shared' ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center space-x-2">
+                      <Lock className="h-4 w-4" />
+                      <span>Admin Shared Credentials</span>
+                      <Badge variant="secondary">Shared</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="adminUsername">Username/Email</Label>
+                      <Input
+                        id="adminUsername"
+                        value={formData.adminUsername}
+                        onChange={(e) => setFormData({ ...formData, adminUsername: e.target.value })}
+                        placeholder="Enter admin username or email"
+                      />
+                    </div>
+
+                    {formData.authMethod === 'api_token' ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="adminApiToken">API Token</Label>
+                        <Input
+                          id="adminApiToken"
+                          type="password"
+                          value={formData.adminApiToken}
+                          onChange={(e) => setFormData({ ...formData, adminApiToken: e.target.value })}
+                          placeholder="Enter admin API token"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="adminPassword">Password</Label>
+                        <Input
+                          id="adminPassword"
+                          type="password"
+                          value={formData.adminPassword}
+                          onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
+                          placeholder="Enter admin password"
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span>User Specific Credentials</span>
+                      <Badge variant="outline">Per User</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="userUsername">Your Username/Email</Label>
+                      <Input
+                        id="userUsername"
+                        value={formData.userUsername}
+                        onChange={(e) => setFormData({ ...formData, userUsername: e.target.value })}
+                        placeholder="Enter your username or email"
+                      />
+                    </div>
+
+                    {formData.authMethod === 'api_token' ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="userApiToken">Your API Token</Label>
+                        <Input
+                          id="userApiToken"
+                          type="password"
+                          value={formData.userApiToken}
+                          onChange={(e) => setFormData({ ...formData, userApiToken: e.target.value })}
+                          placeholder="Enter your API token"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="userPassword">Your Password</Label>
+                        <Input
+                          id="userPassword"
+                          type="password"
+                          value={formData.userPassword}
+                          onChange={(e) => setFormData({ ...formData, userPassword: e.target.value })}
+                          placeholder="Enter your password"
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="permissions" className="space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="rounded"
+                />
+                <Label htmlFor="isActive">Enable this system link</Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                When enabled, users will be able to use this system integration.
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
 
