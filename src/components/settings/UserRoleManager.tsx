@@ -83,13 +83,19 @@ export const UserRoleManager = () => {
     },
   ]);
 
+  // User management state
   const [showUserForm, setShowUserForm] = useState(false);
-  const [showRoleForm, setShowRoleForm] = useState(false);
-  const [showGroupForm, setShowGroupForm] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
+
+  // Role management state
+  const [showRoleForm, setShowRoleForm] = useState(false);
   const [editingRole, setEditingRole] = useState<RoleData | null>(null);
+
+  // Group management state
+  const [showGroupForm, setShowGroupForm] = useState(false);
   const [editingGroup, setEditingGroup] = useState<GroupData | null>(null);
 
+  // User management functions
   const handleAddUser = () => {
     setEditingUser({
       id: '',
@@ -123,6 +129,7 @@ export const UserRoleManager = () => {
     toast({ title: "User Deleted", description: "User has been deleted successfully." });
   };
 
+  // Role management functions
   const handleAddRole = () => {
     setEditingRole({
       id: '',
@@ -154,6 +161,7 @@ export const UserRoleManager = () => {
     toast({ title: "Role Deleted", description: "Role has been deleted successfully." });
   };
 
+  // Group management functions
   const handleAddGroup = () => {
     setEditingGroup({
       id: '',
@@ -186,311 +194,313 @@ export const UserRoleManager = () => {
   };
 
   return (
-    <Tabs defaultValue="users" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="users">Users</TabsTrigger>
-        <TabsTrigger value="roles">Roles</TabsTrigger>
-        <TabsTrigger value="groups">Groups</TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="users" className="flex items-center space-x-2">
+            <Users className="h-4 w-4" />
+            <span>Users</span>
+          </TabsTrigger>
+          <TabsTrigger value="roles" className="flex items-center space-x-2">
+            <Shield className="h-4 w-4" />
+            <span>Roles</span>
+          </TabsTrigger>
+          <TabsTrigger value="groups" className="flex items-center space-x-2">
+            <Group className="h-4 w-4" />
+            <span>Groups</span>
+          </TabsTrigger>
+        </TabsList>
 
-      <TabsContent value="users">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center space-x-2">
-                  <Users className="h-5 w-5" />
-                  <span>User Management</span>
-                </CardTitle>
-                <CardDescription>Manage system users and their access.</CardDescription>
+        <TabsContent value="users">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>User Management</CardTitle>
+                  <CardDescription>Manage system users and their access.</CardDescription>
+                </div>
+                <Button onClick={handleAddUser}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add User
+                </Button>
               </div>
-              <Button onClick={handleAddUser}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add User
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {showUserForm && editingUser && (
-              <Card className="mb-6 border-dashed">
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {editingUser.id ? 'Edit User' : 'Add New User'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+            </CardHeader>
+            <CardContent>
+              {showUserForm && editingUser && (
+                <Card className="mb-6 border-dashed">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      {editingUser.id ? 'Edit User' : 'Add New User'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="user-name">Name</Label>
+                        <Input
+                          id="user-name"
+                          value={editingUser.name}
+                          onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                          placeholder="Enter user name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="user-email">Email</Label>
+                        <Input
+                          id="user-email"
+                          type="email"
+                          value={editingUser.email}
+                          onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                    </div>
                     <div className="space-y-2">
-                      <Label htmlFor="user-name">Name</Label>
+                      <Label htmlFor="user-role">Role</Label>
+                      <select
+                        id="user-role"
+                        value={editingUser.role}
+                        onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        {roles.map(role => (
+                          <option key={role.id} value={role.name}>{role.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={handleSaveUser}>Save</Button>
+                      <Button variant="outline" onClick={() => setShowUserForm(false)}>Cancel</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="space-y-4">
+                {users.map((user) => (
+                  <Card key={user.id} className="border">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <User className="h-8 w-8 text-muted-foreground" />
+                          <div>
+                            <h3 className="font-semibold">{user.name}</h3>
+                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                            <p className="text-xs text-muted-foreground">Role: {user.role}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingUser(user);
+                              setShowUserForm(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="roles">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Role Management</CardTitle>
+                  <CardDescription>Define roles and permissions.</CardDescription>
+                </div>
+                <Button onClick={handleAddRole}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Role
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {showRoleForm && editingRole && (
+                <Card className="mb-6 border-dashed">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      {editingRole.id ? 'Edit Role' : 'Add New Role'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="role-name">Role Name</Label>
                       <Input
-                        id="user-name"
-                        value={editingUser.name}
-                        onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
-                        placeholder="Enter user name"
+                        id="role-name"
+                        value={editingRole.name}
+                        onChange={(e) => setEditingRole({...editingRole, name: e.target.value})}
+                        placeholder="Enter role name"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="user-email">Email</Label>
+                      <Label htmlFor="role-description">Description</Label>
                       <Input
-                        id="user-email"
-                        type="email"
-                        value={editingUser.email}
-                        onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                        placeholder="Enter email address"
+                        id="role-description"
+                        value={editingRole.description}
+                        onChange={(e) => setEditingRole({...editingRole, description: e.target.value})}
+                        placeholder="Enter role description"
                       />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="user-role">Role</Label>
-                    <select
-                      id="user-role"
-                      value={editingUser.role}
-                      onChange={(e) => setEditingUser({...editingUser, role: e.target.value})}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      {roles.map(role => (
-                        <option key={role.id} value={role.name}>{role.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button onClick={handleSaveUser}>Save</Button>
-                    <Button variant="outline" onClick={() => setShowUserForm(false)}>Cancel</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="space-y-4">
-              {users.map((user) => (
-                <Card key={user.id} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <User className="h-8 w-8 text-muted-foreground" />
-                        <div>
-                          <h3 className="font-semibold">{user.name}</h3>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                          <p className="text-xs text-muted-foreground">Role: {user.role}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingUser(user);
-                            setShowUserForm(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteUser(user.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={handleSaveRole}>Save</Button>
+                      <Button variant="outline" onClick={() => setShowRoleForm(false)}>Cancel</Button>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
+              )}
 
-      <TabsContent value="roles">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center space-x-2">
-                  <Shield className="h-5 w-5" />
-                  <span>Role Management</span>
-                </CardTitle>
-                <CardDescription>Define roles and permissions.</CardDescription>
+              <div className="space-y-4">
+                {roles.map((role) => (
+                  <Card key={role.id} className="border">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Shield className="h-8 w-8 text-muted-foreground" />
+                          <div>
+                            <h3 className="font-semibold">{role.name}</h3>
+                            <p className="text-sm text-muted-foreground">{role.description}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Permissions: {role.permissions.join(', ')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingRole(role);
+                              setShowRoleForm(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteRole(role.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <Button onClick={handleAddRole}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Role
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {showRoleForm && editingRole && (
-              <Card className="mb-6 border-dashed">
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {editingRole.id ? 'Edit Role' : 'Add New Role'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="role-name">Role Name</Label>
-                    <Input
-                      id="role-name"
-                      value={editingRole.name}
-                      onChange={(e) => setEditingRole({...editingRole, name: e.target.value})}
-                      placeholder="Enter role name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="role-description">Description</Label>
-                    <Input
-                      id="role-description"
-                      value={editingRole.description}
-                      onChange={(e) => setEditingRole({...editingRole, description: e.target.value})}
-                      placeholder="Enter role description"
-                    />
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button onClick={handleSaveRole}>Save</Button>
-                    <Button variant="outline" onClick={() => setShowRoleForm(false)}>Cancel</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <div className="space-y-4">
-              {roles.map((role) => (
-                <Card key={role.id} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <Shield className="h-8 w-8 text-muted-foreground" />
-                        <div>
-                          <h3 className="font-semibold">{role.name}</h3>
-                          <p className="text-sm text-muted-foreground">{role.description}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Permissions: {role.permissions.join(', ')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingRole(role);
-                            setShowRoleForm(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteRole(role.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="groups">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center space-x-2">
-                  <Group className="h-5 w-5" />
-                  <span>Group Management</span>
-                </CardTitle>
-                <CardDescription>Manage user groups and teams.</CardDescription>
+        <TabsContent value="groups">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Group Management</CardTitle>
+                  <CardDescription>Manage user groups and teams.</CardDescription>
+                </div>
+                <Button onClick={handleAddGroup}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Group
+                </Button>
               </div>
-              <Button onClick={handleAddGroup}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Group
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {showGroupForm && editingGroup && (
-              <Card className="mb-6 border-dashed">
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {editingGroup.id ? 'Edit Group' : 'Add New Group'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="group-name">Group Name</Label>
-                    <Input
-                      id="group-name"
-                      value={editingGroup.name}
-                      onChange={(e) => setEditingGroup({...editingGroup, name: e.target.value})}
-                      placeholder="Enter group name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="group-description">Description</Label>
-                    <Input
-                      id="group-description"
-                      value={editingGroup.description}
-                      onChange={(e) => setEditingGroup({...editingGroup, description: e.target.value})}
-                      placeholder="Enter group description"
-                    />
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button onClick={handleSaveGroup}>Save</Button>
-                    <Button variant="outline" onClick={() => setShowGroupForm(false)}>Cancel</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="space-y-4">
-              {groups.map((group) => (
-                <Card key={group.id} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <Group className="h-8 w-8 text-muted-foreground" />
-                        <div>
-                          <h3 className="font-semibold">{group.name}</h3>
-                          <p className="text-sm text-muted-foreground">{group.description}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Members: {group.members.length}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingGroup(group);
-                            setShowGroupForm(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteGroup(group.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
+            </CardHeader>
+            <CardContent>
+              {showGroupForm && editingGroup && (
+                <Card className="mb-6 border-dashed">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      {editingGroup.id ? 'Edit Group' : 'Add New Group'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="group-name">Group Name</Label>
+                      <Input
+                        id="group-name"
+                        value={editingGroup.name}
+                        onChange={(e) => setEditingGroup({...editingGroup, name: e.target.value})}
+                        placeholder="Enter group name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="group-description">Description</Label>
+                      <Input
+                        id="group-description"
+                        value={editingGroup.description}
+                        onChange={(e) => setEditingGroup({...editingGroup, description: e.target.value})}
+                        placeholder="Enter group description"
+                      />
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={handleSaveGroup}>Save</Button>
+                      <Button variant="outline" onClick={() => setShowGroupForm(false)}>Cancel</Button>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+              )}
+
+              <div className="space-y-4">
+                {groups.map((group) => (
+                  <Card key={group.id} className="border">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Group className="h-8 w-8 text-muted-foreground" />
+                          <div>
+                            <h3 className="font-semibold">{group.name}</h3>
+                            <p className="text-sm text-muted-foreground">{group.description}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Members: {group.members.length}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingGroup(group);
+                              setShowGroupForm(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteGroup(group.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
