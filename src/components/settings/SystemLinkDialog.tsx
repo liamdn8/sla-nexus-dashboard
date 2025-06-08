@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Lock, User } from "lucide-react";
@@ -17,11 +17,9 @@ interface SystemLink {
   description: string;
   credentialType: 'admin_shared' | 'user_specific';
   authMethod: 'api_token' | 'username_password';
-  // Admin shared credentials
   adminUsername?: string;
   adminApiToken?: string;
   adminPassword?: string;
-  // User specific credentials (would be per user in real app)
   userUsername?: string;
   userApiToken?: string;
   userPassword?: string;
@@ -94,7 +92,7 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {link ? 'Edit System Link' : 'Add New System Link'}
@@ -104,14 +102,11 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="credentials">Credentials</TabsTrigger>
-            <TabsTrigger value="permissions">Permissions</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="general" className="space-y-4">
+        <div className="space-y-6">
+          {/* Basic Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Basic Information</h3>
+            
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
@@ -121,7 +116,11 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Enter system name"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Display name for this system integration
+                </p>
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>
                 <select
@@ -136,6 +135,9 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
                   <option value="harbor">Harbor</option>
                   <option value="mano">MANO</option>
                 </select>
+                <p className="text-xs text-muted-foreground">
+                  Select the type of external system
+                </p>
               </div>
             </div>
 
@@ -147,23 +149,48 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
                 onChange={(e) => setFormData({ ...formData, baseUrl: e.target.value })}
                 placeholder="https://example.com"
               />
+              <p className="text-xs text-muted-foreground">
+                The root URL of the external system (e.g., https://company.atlassian.net)
+              </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Input
+              <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Enter description"
+                rows={2}
               />
+              <p className="text-xs text-muted-foreground">
+                Brief description of this system integration
+              </p>
             </div>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="credentials" className="space-y-4">
+          {/* Authentication Configuration */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Authentication Configuration</h3>
+            
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Credential Type</Label>
+                <Label>Authentication Method</Label>
+                <select
+                  value={formData.authMethod}
+                  onChange={(e) => setFormData({ ...formData, authMethod: e.target.value as any })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="api_token">API Token</option>
+                  <option value="username_password">Username/Password</option>
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Choose the authentication method supported by the external system
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Configuration Scope</Label>
                 <div className="grid grid-cols-2 gap-4">
                   <Card 
                     className={`cursor-pointer border-2 ${formData.credentialType === 'admin_shared' ? 'border-primary bg-primary/5' : 'border-border'}`}
@@ -177,7 +204,7 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
                     </CardHeader>
                     <CardContent>
                       <p className="text-xs text-muted-foreground">
-                        Single set of credentials shared across all users
+                        Single set of credentials shared across all users. Administrator configures credentials here.
                       </p>
                     </CardContent>
                   </Card>
@@ -194,33 +221,21 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
                     </CardHeader>
                     <CardContent>
                       <p className="text-xs text-muted-foreground">
-                        Each user provides their own credentials
+                        Each user provides their own credentials in Account Settings.
                       </p>
                     </CardContent>
                   </Card>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="authMethod">Authentication Method</Label>
-                <select
-                  id="authMethod"
-                  value={formData.authMethod}
-                  onChange={(e) => setFormData({ ...formData, authMethod: e.target.value as any })}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                >
-                  <option value="api_token">API Token</option>
-                  <option value="username_password">Username/Password</option>
-                </select>
-              </div>
-
-              {formData.credentialType === 'admin_shared' ? (
+              {/* Admin Shared Credentials */}
+              {formData.credentialType === 'admin_shared' && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm flex items-center space-x-2">
                       <Lock className="h-4 w-4" />
                       <span>Admin Shared Credentials</span>
-                      <Badge variant="secondary">Shared</Badge>
+                      <Badge variant="secondary">Configure Now</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -232,6 +247,9 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
                         onChange={(e) => setFormData({ ...formData, adminUsername: e.target.value })}
                         placeholder="Enter admin username or email"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        The username or email address used to authenticate with the external system
+                      </p>
                     </div>
 
                     {formData.authMethod === 'api_token' ? (
@@ -244,6 +262,9 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
                           onChange={(e) => setFormData({ ...formData, adminApiToken: e.target.value })}
                           placeholder="Enter admin API token"
                         />
+                        <p className="text-xs text-muted-foreground">
+                          API token or personal access token for authentication
+                        </p>
                       </div>
                     ) : (
                       <div className="space-y-2">
@@ -255,77 +276,54 @@ export const SystemLinkDialog = ({ open, onOpenChange, link, onSave }: SystemLin
                           onChange={(e) => setFormData({ ...formData, adminPassword: e.target.value })}
                           placeholder="Enter admin password"
                         />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm flex items-center space-x-2">
-                      <User className="h-4 w-4" />
-                      <span>User Specific Credentials</span>
-                      <Badge variant="outline">Per User</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="userUsername">Your Username/Email</Label>
-                      <Input
-                        id="userUsername"
-                        value={formData.userUsername}
-                        onChange={(e) => setFormData({ ...formData, userUsername: e.target.value })}
-                        placeholder="Enter your username or email"
-                      />
-                    </div>
-
-                    {formData.authMethod === 'api_token' ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="userApiToken">Your API Token</Label>
-                        <Input
-                          id="userApiToken"
-                          type="password"
-                          value={formData.userApiToken}
-                          onChange={(e) => setFormData({ ...formData, userApiToken: e.target.value })}
-                          placeholder="Enter your API token"
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Label htmlFor="userPassword">Your Password</Label>
-                        <Input
-                          id="userPassword"
-                          type="password"
-                          value={formData.userPassword}
-                          onChange={(e) => setFormData({ ...formData, userPassword: e.target.value })}
-                          placeholder="Enter your password"
-                        />
+                        <p className="text-xs text-muted-foreground">
+                          Password for the admin account
+                        </p>
                       </div>
                     )}
                   </CardContent>
                 </Card>
               )}
-            </div>
-          </TabsContent>
 
-          <TabsContent value="permissions" className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="rounded"
-                />
-                <Label htmlFor="isActive">Enable this system link</Label>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                When enabled, users will be able to use this system integration.
-              </p>
+              {/* User Specific Notice */}
+              {formData.credentialType === 'user_specific' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span>User Specific Configuration</span>
+                      <Badge variant="outline">User Configured</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      When this configuration scope is selected, each user will need to configure their own credentials 
+                      in their Account Settings page. Users will only see system links that they have configured credentials for.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          {/* System Status */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">System Status</h3>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="isActive"
+                checked={formData.isActive}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                className="rounded"
+              />
+              <Label htmlFor="isActive">Enable this system link</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              When enabled, users will be able to use this system integration
+            </p>
+          </div>
+        </div>
 
         <div className="flex justify-end space-x-2 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
