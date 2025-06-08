@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Sidebar,
@@ -87,6 +88,11 @@ const settingsItems = [
     title: "System Settings",
     url: "/settings/system",
     icon: Settings,
+  },
+  {
+    title: "Project Settings",
+    url: "/settings/project",
+    icon: FolderOpen,
   },
   {
     title: "Account Settings",

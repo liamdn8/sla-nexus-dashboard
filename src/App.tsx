@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +24,7 @@ import ExternalTools from "./pages/settings/ExternalTools";
 import EnvironmentMapping from "./pages/settings/EnvironmentMapping";
 import DevelopmentMapping from "./pages/settings/DevelopmentMapping";
 import SystemSettings from "./pages/settings/SystemSettings";
+import ProjectSettings from "./pages/settings/ProjectSettings";
 import AccountSettings from "./pages/settings/AccountSettings";
 import Login from "./pages/Login";
 import Projects from "./pages/Projects";
@@ -57,6 +59,7 @@ const App = () => (
           <Route path="/settings/environment-mapping" element={<EnvironmentMapping />} />
           <Route path="/settings/development-mapping" element={<DevelopmentMapping />} />
           <Route path="/settings/system" element={<SystemSettings />} />
+          <Route path="/settings/project" element={<ProjectSettings />} />
           <Route path="/settings/account" element={<AccountSettings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
