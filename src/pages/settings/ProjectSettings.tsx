@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FolderOpen, Save, RefreshCw, Link, Plus, Trash, ExternalLink } from "lucide-react";
+import { FolderOpen, Save, Link, Plus, Trash, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SystemLink {
@@ -28,13 +28,17 @@ interface ProjectLink {
   systemLinkName: string;
   linkType: 'jira' | 'confluence' | 'jenkins' | 'harbor' | 'mano';
   projectKey: string;
-  projectName: string;
-  enabled: boolean;
+  projectMappingName: string;
+  baseUrl: string;
+  createdAt: string;
+  lastSync: string;
 }
 
 const ProjectSettings = () => {
   const { toast } = useToast();
   const [isAddLinkOpen, setIsAddLinkOpen] = useState(false);
+  const [isEditLinkOpen, setIsEditLinkOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<ProjectLink | null>(null);
   
   const [projectInfo, setProjectInfo] = useState({
     name: 'E-Commerce Platform',
@@ -76,8 +80,10 @@ const ProjectSettings = () => {
       systemLinkName: 'Production Jira',
       linkType: 'jira',
       projectKey: 'ECP',
-      projectName: 'E-Commerce Platform',
-      enabled: true,
+      projectMappingName: 'E-Commerce Platform',
+      baseUrl: 'https://company.atlassian.net',
+      createdAt: '2024-01-15',
+      lastSync: '2024-06-09 10:30',
     },
     {
       id: '2',
@@ -85,15 +91,16 @@ const ProjectSettings = () => {
       systemLinkName: 'Main Harbor Registry',
       linkType: 'harbor',
       projectKey: 'ecommerce-platform',
-      projectName: 'ecommerce-platform',
-      enabled: true,
+      projectMappingName: 'ecommerce-platform',
+      baseUrl: 'https://harbor.company.com',
+      createdAt: '2024-02-01',
+      lastSync: '2024-06-09 09:45',
     }
   ]);
 
   const [newLink, setNewLink] = useState({
     systemLinkId: '',
     projectKey: '',
-    projectName: '',
   });
 
   const getTypeIcon = (type: string) => {
@@ -125,13 +132,6 @@ const ProjectSettings = () => {
     });
   };
 
-  const handleTestConnection = (link: ProjectLink) => {
-    toast({
-      title: "Testing Connection",
-      description: `Testing connection to ${link.systemLinkName}...`,
-    });
-  };
-
   const handleAddLink = () => {
     if (!newLink.systemLinkId || !newLink.projectKey) {
       toast({
@@ -151,17 +151,42 @@ const ProjectSettings = () => {
       systemLinkName: selectedSystemLink.name,
       linkType: selectedSystemLink.type,
       projectKey: newLink.projectKey,
-      projectName: newLink.projectName || newLink.projectKey,
-      enabled: true,
+      projectMappingName: newLink.projectKey,
+      baseUrl: selectedSystemLink.baseUrl,
+      createdAt: new Date().toISOString().split('T')[0],
+      lastSync: 'Never',
     };
 
     setProjectLinks([...projectLinks, projectLink]);
-    setNewLink({ systemLinkId: '', projectKey: '', projectName: '' });
+    setNewLink({ systemLinkId: '', projectKey: '' });
     setIsAddLinkOpen(false);
 
     toast({
       title: "Project Link Added",
       description: `Successfully linked to ${selectedSystemLink.name}.`,
+    });
+  };
+
+  const handleEditLink = (link: ProjectLink) => {
+    setEditingLink(link);
+    setIsEditLinkOpen(true);
+  };
+
+  const handleUpdateLink = () => {
+    if (!editingLink) return;
+
+    setProjectLinks(links =>
+      links.map(link =>
+        link.id === editingLink.id ? editingLink : link
+      )
+    );
+    
+    setIsEditLinkOpen(false);
+    setEditingLink(null);
+    
+    toast({
+      title: "Project Link Updated",
+      description: "Project link has been updated successfully.",
     });
   };
 
@@ -173,16 +198,6 @@ const ProjectSettings = () => {
       description: `Removed link to ${link?.systemLinkName}.`,
       variant: "destructive",
     });
-  };
-
-  const toggleLinkStatus = (linkId: string) => {
-    setProjectLinks(links => 
-      links.map(link => 
-        link.id === linkId 
-          ? { ...link, enabled: !link.enabled }
-          : link
-      )
-    );
   };
 
   const selectedSystemLink = availableSystemLinks.find(sl => sl.id === newLink.systemLinkId);
@@ -374,16 +389,6 @@ const ProjectSettings = () => {
                           />
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="project-name-input">Project Name (Optional)</Label>
-                          <Input
-                            id="project-name-input"
-                            value={newLink.projectName}
-                            onChange={(e) => setNewLink({ ...newLink, projectName: e.target.value })}
-                            placeholder="Enter display name"
-                          />
-                        </div>
-
                         <div className="flex justify-end space-x-2">
                           <Button variant="outline" onClick={() => setIsAddLinkOpen(false)}>
                             Cancel
@@ -403,48 +408,48 @@ const ProjectSettings = () => {
                     {projectLinks.map((link) => (
                       <Card key={link.id} className="border">
                         <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              <span className="text-xl">{getTypeIcon(link.linkType)}</span>
-                              <div>
-                                <div className="flex items-center space-x-2">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3">
+                              <span className="text-xl mt-1">{getTypeIcon(link.linkType)}</span>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-2">
                                   <h4 className="font-semibold">{link.systemLinkName}</h4>
                                   <Badge className={getTypeBadgeColor(link.linkType)}>
                                     {link.linkType.toUpperCase()}
                                   </Badge>
-                                  <Badge variant={link.enabled ? 'default' : 'secondary'}>
-                                    {link.enabled ? 'Enabled' : 'Disabled'}
-                                  </Badge>
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {link.linkType === 'jira' ? 'Project Key:' :
-                                   link.linkType === 'harbor' ? 'Project Name:' :
-                                   'Project:'} {link.projectKey}
-                                  {link.projectName && link.projectName !== link.projectKey && (
-                                    <span> ({link.projectName})</span>
-                                  )}
-                                </p>
+                                <div className="space-y-1 text-sm text-muted-foreground">
+                                  <p>
+                                    <span className="font-medium">Project Key:</span> {link.projectKey}
+                                  </p>
+                                  <p>
+                                    <span className="font-medium">Mapping Name:</span> {link.projectMappingName}
+                                  </p>
+                                  <p>
+                                    <span className="font-medium">Base URL:</span> {link.baseUrl}
+                                  </p>
+                                  <div className="flex space-x-4">
+                                    <span>
+                                      <span className="font-medium">Created:</span> {link.createdAt}
+                                    </span>
+                                    <span>
+                                      <span className="font-medium">Last Sync:</span> {link.lastSync}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => toggleLinkStatus(link.id)}
+                                onClick={() => handleEditLink(link)}
                               >
-                                {link.enabled ? 'Disable' : 'Enable'}
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
                               </Button>
                               <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleTestConnection(link)}
-                                disabled={!link.enabled}
-                              >
-                                <RefreshCw className="h-4 w-4 mr-1" />
-                                Test
-                              </Button>
-                              <Button
-                                variant="ghost"
+                                variant="destructive"
                                 size="sm"
                                 onClick={() => handleRemoveLink(link.id)}
                               >
@@ -471,6 +476,59 @@ const ProjectSettings = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Edit Link Dialog */}
+            <Dialog open={isEditLinkOpen} onOpenChange={setIsEditLinkOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Project Link</DialogTitle>
+                  <DialogDescription>
+                    Update the project link configuration.
+                  </DialogDescription>
+                </DialogHeader>
+                {editingLink && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-project-key">
+                        {editingLink.linkType === 'jira' ? 'Jira Project Key' :
+                         editingLink.linkType === 'harbor' ? 'Harbor Project Name' :
+                         editingLink.linkType === 'confluence' ? 'Space Key' :
+                         'Project Key'}
+                      </Label>
+                      <Input
+                        id="edit-project-key"
+                        value={editingLink.projectKey}
+                        onChange={(e) => setEditingLink({
+                          ...editingLink,
+                          projectKey: e.target.value
+                        })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-mapping-name">Project Mapping Name</Label>
+                      <Input
+                        id="edit-mapping-name"
+                        value={editingLink.projectMappingName}
+                        onChange={(e) => setEditingLink({
+                          ...editingLink,
+                          projectMappingName: e.target.value
+                        })}
+                      />
+                    </div>
+
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setIsEditLinkOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleUpdateLink}>
+                        Update Link
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
         </SidebarInset>
       </div>
