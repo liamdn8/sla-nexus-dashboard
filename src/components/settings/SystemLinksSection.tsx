@@ -26,7 +26,7 @@ interface SystemLink {
 
 interface SystemLinksSectionProps {
   userSystemLinks: SystemLink[];
-  setUserSystemLinks: (links: SystemLink[]) => void;
+  setUserSystemLinks: React.Dispatch<React.SetStateAction<SystemLink[]>>;
 }
 
 export const SystemLinksSection = ({ userSystemLinks, setUserSystemLinks }: SystemLinksSectionProps) => {
@@ -134,8 +134,10 @@ export const SystemLinksSection = ({ userSystemLinks, setUserSystemLinks }: Syst
           <div className="space-y-3">
             {userSystemLinks.map((link) => (
               <Collapsible key={link.id} open={openLinks.includes(link.id)} onOpenChange={() => toggleLink(link.id)}>
-                <CollapsibleTrigger className="w-full">
-                  <Card className="border hover:bg-accent/50 transition-colors cursor-pointer">
+                <CollapsibleTrigger className="w-full" disabled={!canEditCredentials(link)}>
+                  <Card className={`border transition-colors cursor-pointer ${
+                    canEditCredentials(link) ? 'hover:bg-accent/50' : 'opacity-60 cursor-not-allowed'
+                  }`}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -170,17 +172,19 @@ export const SystemLinksSection = ({ userSystemLinks, setUserSystemLinks }: Syst
                               Admin Only
                             </Badge>
                           )}
-                          <ChevronDown className={`h-4 w-4 transition-transform ${openLinks.includes(link.id) ? 'rotate-180' : ''}`} />
+                          {canEditCredentials(link) && (
+                            <ChevronDown className={`h-4 w-4 transition-transform ${openLinks.includes(link.id) ? 'rotate-180' : ''}`} />
+                          )}
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </CollapsibleTrigger>
                 
-                <CollapsibleContent>
-                  <Card className="mt-2 border-l-4 border-l-primary/20">
-                    <CardContent className="p-4">
-                      {canEditCredentials(link) ? (
+                {canEditCredentials(link) && (
+                  <CollapsibleContent>
+                    <Card className="mt-2 border-l-4 border-l-primary/20">
+                      <CardContent className="p-4">
                         <div className="space-y-4">
                           <div className="text-sm text-muted-foreground mb-4">
                             <strong>Connection Details:</strong> {link.baseUrl}
@@ -237,22 +241,10 @@ export const SystemLinksSection = ({ userSystemLinks, setUserSystemLinks }: Syst
                             Save Credentials
                           </Button>
                         </div>
-                      ) : (
-                        <div className="text-center py-6">
-                          <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-                          <h4 className="font-semibold mb-2">Administrator Managed</h4>
-                          <p className="text-sm text-muted-foreground">
-                            This system link uses shared credentials managed by your administrator. 
-                            You don't need to configure anything - the connection is ready to use.
-                          </p>
-                          <div className="mt-4 text-sm text-muted-foreground">
-                            <strong>Connection URL:</strong> {link.baseUrl}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </CollapsibleContent>
+                      </CardContent>
+                    </Card>
+                  </CollapsibleContent>
+                )}
               </Collapsible>
             ))}
           </div>
