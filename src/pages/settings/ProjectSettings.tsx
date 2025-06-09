@@ -7,14 +7,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderOpen, Save, RefreshCw, Link } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { FolderOpen, Save, RefreshCw, Link, Plus, Trash, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+interface SystemLink {
+  id: string;
+  name: string;
+  type: 'jira' | 'confluence' | 'jenkins' | 'harbor' | 'mano';
+  baseUrl: string;
+  description: string;
+}
+
+interface ProjectLink {
+  id: string;
+  systemLinkId: string;
+  systemLinkName: string;
+  linkType: 'jira' | 'confluence' | 'jenkins' | 'harbor' | 'mano';
+  projectKey: string;
+  projectName: string;
+  enabled: boolean;
+}
 
 const ProjectSettings = () => {
   const { toast } = useToast();
+  const [isAddLinkOpen, setIsAddLinkOpen] = useState(false);
+  
   const [projectInfo, setProjectInfo] = useState({
     name: 'E-Commerce Platform',
     key: 'ECP',
@@ -23,23 +44,79 @@ const ProjectSettings = () => {
     status: 'active',
   });
 
-  const [projectLinks, setProjectLinks] = useState({
-    jira: {
+  // Mock system links available for selection
+  const [availableSystemLinks] = useState<SystemLink[]>([
+    {
+      id: '1',
+      name: 'Production Jira',
+      type: 'jira',
+      baseUrl: 'https://company.atlassian.net',
+      description: 'Primary Jira instance'
+    },
+    {
+      id: '2',
+      name: 'Main Harbor Registry',
+      type: 'harbor',
+      baseUrl: 'https://harbor.company.com',
+      description: 'Container registry'
+    },
+    {
+      id: '3',
+      name: 'Team Confluence',
+      type: 'confluence',
+      baseUrl: 'https://company.atlassian.net/wiki',
+      description: 'Documentation wiki'
+    }
+  ]);
+
+  const [projectLinks, setProjectLinks] = useState<ProjectLink[]>([
+    {
+      id: '1',
+      systemLinkId: '1',
+      systemLinkName: 'Production Jira',
+      linkType: 'jira',
       projectKey: 'ECP',
-      baseUrl: 'https://your-company.atlassian.net',
+      projectName: 'E-Commerce Platform',
       enabled: true,
     },
-    harbor: {
+    {
+      id: '2',
+      systemLinkId: '2',
+      systemLinkName: 'Main Harbor Registry',
+      linkType: 'harbor',
+      projectKey: 'ecommerce-platform',
       projectName: 'ecommerce-platform',
-      registryUrl: 'https://harbor.your-company.com',
       enabled: true,
-    },
-    mano: {
-      projectId: 'ecp-001',
-      orchestratorUrl: 'https://mano.your-company.com',
-      enabled: false,
-    },
+    }
+  ]);
+
+  const [newLink, setNewLink] = useState({
+    systemLinkId: '',
+    projectKey: '',
+    projectName: '',
   });
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'jira': return '🎯';
+      case 'confluence': return '📚';
+      case 'jenkins': return '🔧';
+      case 'harbor': return '🐳';
+      case 'mano': return '⚡';
+      default: return '🔗';
+    }
+  };
+
+  const getTypeBadgeColor = (type: string) => {
+    const colorMap: Record<string, string> = {
+      jira: 'bg-blue-100 text-blue-800',
+      confluence: 'bg-green-100 text-green-800',
+      jenkins: 'bg-red-100 text-red-800',
+      harbor: 'bg-cyan-100 text-cyan-800',
+      mano: 'bg-purple-100 text-purple-800'
+    };
+    return colorMap[type] || 'bg-gray-100 text-gray-800';
+  };
 
   const handleSave = () => {
     toast({
@@ -48,12 +125,67 @@ const ProjectSettings = () => {
     });
   };
 
-  const handleTestConnection = (service: string) => {
+  const handleTestConnection = (link: ProjectLink) => {
     toast({
       title: "Testing Connection",
-      description: `Testing connection to ${service}...`,
+      description: `Testing connection to ${link.systemLinkName}...`,
     });
   };
+
+  const handleAddLink = () => {
+    if (!newLink.systemLinkId || !newLink.projectKey) {
+      toast({
+        title: "Error",
+        description: "Please select a system link and enter a project key.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedSystemLink = availableSystemLinks.find(sl => sl.id === newLink.systemLinkId);
+    if (!selectedSystemLink) return;
+
+    const projectLink: ProjectLink = {
+      id: Date.now().toString(),
+      systemLinkId: newLink.systemLinkId,
+      systemLinkName: selectedSystemLink.name,
+      linkType: selectedSystemLink.type,
+      projectKey: newLink.projectKey,
+      projectName: newLink.projectName || newLink.projectKey,
+      enabled: true,
+    };
+
+    setProjectLinks([...projectLinks, projectLink]);
+    setNewLink({ systemLinkId: '', projectKey: '', projectName: '' });
+    setIsAddLinkOpen(false);
+
+    toast({
+      title: "Project Link Added",
+      description: `Successfully linked to ${selectedSystemLink.name}.`,
+    });
+  };
+
+  const handleRemoveLink = (linkId: string) => {
+    const link = projectLinks.find(l => l.id === linkId);
+    setProjectLinks(projectLinks.filter(l => l.id !== linkId));
+    toast({
+      title: "Project Link Removed",
+      description: `Removed link to ${link?.systemLinkName}.`,
+      variant: "destructive",
+    });
+  };
+
+  const toggleLinkStatus = (linkId: string) => {
+    setProjectLinks(links => 
+      links.map(link => 
+        link.id === linkId 
+          ? { ...link, enabled: !link.enabled }
+          : link
+      )
+    );
+  };
+
+  const selectedSystemLink = availableSystemLinks.find(sl => sl.id === newLink.systemLinkId);
 
   return (
     <SidebarProvider>
@@ -66,7 +198,7 @@ const ProjectSettings = () => {
               <div>
                 <h2 className="text-3xl font-bold tracking-tight">Project Settings</h2>
                 <p className="text-muted-foreground">
-                  Configure project information and external system integrations.
+                  Configure project information and external system links.
                 </p>
               </div>
               <Button onClick={handleSave}>
@@ -75,241 +207,270 @@ const ProjectSettings = () => {
               </Button>
             </div>
 
-            <Tabs defaultValue="general" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="general">General Information</TabsTrigger>
-                <TabsTrigger value="integrations">Project Integrations</TabsTrigger>
-              </TabsList>
+            {/* General Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FolderOpen className="h-5 w-5" />
+                  <span>General Project Information</span>
+                </CardTitle>
+                <CardDescription>
+                  Basic project configuration and metadata.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="project-name">Project Name</Label>
+                    <Input
+                      id="project-name"
+                      value={projectInfo.name}
+                      onChange={(e) => setProjectInfo({
+                        ...projectInfo,
+                        name: e.target.value
+                      })}
+                      placeholder="Enter project name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="project-key">Project Key</Label>
+                    <Input
+                      id="project-key"
+                      value={projectInfo.key}
+                      onChange={(e) => setProjectInfo({
+                        ...projectInfo,
+                        key: e.target.value.toUpperCase()
+                      })}
+                      placeholder="ECP"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="project-description">Description</Label>
+                  <Textarea
+                    id="project-description"
+                    value={projectInfo.description}
+                    onChange={(e) => setProjectInfo({
+                      ...projectInfo,
+                      description: e.target.value
+                    })}
+                    placeholder="Enter project description"
+                    className="min-h-[100px]"
+                  />
+                </div>
 
-              <TabsContent value="general">
-                <Card>
-                  <CardHeader>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="project-admin">Project Admin</Label>
+                    <Input
+                      id="project-admin"
+                      value={projectInfo.admin}
+                      onChange={(e) => setProjectInfo({
+                        ...projectInfo,
+                        admin: e.target.value
+                      })}
+                      placeholder="Enter admin name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="project-status">Status</Label>
+                    <Select
+                      value={projectInfo.status}
+                      onValueChange={(value) => setProjectInfo({
+                        ...projectInfo,
+                        status: value
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="maintenance">Maintenance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Project Links */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
                     <CardTitle className="flex items-center space-x-2">
-                      <FolderOpen className="h-5 w-5" />
-                      <span>General Project Information</span>
+                      <Link className="h-5 w-5" />
+                      <span>Project Links</span>
                     </CardTitle>
                     <CardDescription>
-                      Basic project configuration and metadata.
+                      Connect this project to external systems and tools.
                     </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="project-name">Project Name</Label>
-                        <Input
-                          id="project-name"
-                          value={projectInfo.name}
-                          onChange={(e) => setProjectInfo({
-                            ...projectInfo,
-                            name: e.target.value
-                          })}
-                          placeholder="Enter project name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="project-key">Project Key</Label>
-                        <Input
-                          id="project-key"
-                          value={projectInfo.key}
-                          onChange={(e) => setProjectInfo({
-                            ...projectInfo,
-                            key: e.target.value.toUpperCase()
-                          })}
-                          placeholder="ECP"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="project-description">Description</Label>
-                      <Textarea
-                        id="project-description"
-                        value={projectInfo.description}
-                        onChange={(e) => setProjectInfo({
-                          ...projectInfo,
-                          description: e.target.value
-                        })}
-                        placeholder="Enter project description"
-                        className="min-h-[100px]"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="project-admin">Project Admin</Label>
-                        <Input
-                          id="project-admin"
-                          value={projectInfo.admin}
-                          onChange={(e) => setProjectInfo({
-                            ...projectInfo,
-                            admin: e.target.value
-                          })}
-                          placeholder="Enter admin name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="project-status">Status</Label>
-                        <Select
-                          value={projectInfo.status}
-                          onValueChange={(value) => setProjectInfo({
-                            ...projectInfo,
-                            status: value
-                          })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
-                            <SelectItem value="maintenance">Maintenance</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="integrations">
-                <div className="space-y-6">
-                  {/* Jira Integration */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <span>🎫</span>
-                        <span>Jira Project Mapping</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Map this project to a Jira project for issue tracking.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="jira-project-key">Jira Project Key</Label>
-                          <Input
-                            id="jira-project-key"
-                            value={projectLinks.jira.projectKey}
-                            onChange={(e) => setProjectLinks({
-                              ...projectLinks,
-                              jira: { ...projectLinks.jira, projectKey: e.target.value }
-                            })}
-                            placeholder="ECP"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="jira-base-url">Jira Base URL</Label>
-                          <Input
-                            id="jira-base-url"
-                            value={projectLinks.jira.baseUrl}
-                            onChange={(e) => setProjectLinks({
-                              ...projectLinks,
-                              jira: { ...projectLinks.jira, baseUrl: e.target.value }
-                            })}
-                            placeholder="https://your-company.atlassian.net"
-                          />
-                        </div>
-                      </div>
-                      <Button variant="outline" onClick={() => handleTestConnection('Jira')}>
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Test Jira Connection
+                  </div>
+                  <Dialog open={isAddLinkOpen} onOpenChange={setIsAddLinkOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Link
                       </Button>
-                    </CardContent>
-                  </Card>
-
-                  {/* Harbor Integration */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <span>🐳</span>
-                        <span>Harbor Project Mapping</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Map this project to a Harbor registry project for container management.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add Project Link</DialogTitle>
+                        <DialogDescription>
+                          Connect this project to an external system.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="harbor-project-name">Harbor Project Name</Label>
+                          <Label htmlFor="system-link">System Link</Label>
+                          <Select
+                            value={newLink.systemLinkId}
+                            onValueChange={(value) => setNewLink({ ...newLink, systemLinkId: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a system link" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableSystemLinks.map((systemLink) => (
+                                <SelectItem key={systemLink.id} value={systemLink.id}>
+                                  <div className="flex items-center space-x-2">
+                                    <span>{getTypeIcon(systemLink.type)}</span>
+                                    <span>{systemLink.name}</span>
+                                    <Badge className={getTypeBadgeColor(systemLink.type)}>
+                                      {systemLink.type.toUpperCase()}
+                                    </Badge>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {selectedSystemLink && (
+                            <p className="text-sm text-muted-foreground">
+                              {selectedSystemLink.description} - {selectedSystemLink.baseUrl}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="project-key-input">
+                            {selectedSystemLink?.type === 'jira' ? 'Jira Project Key' :
+                             selectedSystemLink?.type === 'harbor' ? 'Harbor Project Name' :
+                             selectedSystemLink?.type === 'confluence' ? 'Space Key' :
+                             'Project Key'}
+                          </Label>
                           <Input
-                            id="harbor-project-name"
-                            value={projectLinks.harbor.projectName}
-                            onChange={(e) => setProjectLinks({
-                              ...projectLinks,
-                              harbor: { ...projectLinks.harbor, projectName: e.target.value }
-                            })}
-                            placeholder="ecommerce-platform"
+                            id="project-key-input"
+                            value={newLink.projectKey}
+                            onChange={(e) => setNewLink({ ...newLink, projectKey: e.target.value })}
+                            placeholder={
+                              selectedSystemLink?.type === 'jira' ? 'e.g., ECP' :
+                              selectedSystemLink?.type === 'harbor' ? 'e.g., ecommerce-platform' :
+                              selectedSystemLink?.type === 'confluence' ? 'e.g., ECP' :
+                              'Enter project identifier'
+                            }
                           />
                         </div>
+
                         <div className="space-y-2">
-                          <Label htmlFor="harbor-registry-url">Harbor Registry URL</Label>
+                          <Label htmlFor="project-name-input">Project Name (Optional)</Label>
                           <Input
-                            id="harbor-registry-url"
-                            value={projectLinks.harbor.registryUrl}
-                            onChange={(e) => setProjectLinks({
-                              ...projectLinks,
-                              harbor: { ...projectLinks.harbor, registryUrl: e.target.value }
-                            })}
-                            placeholder="https://harbor.your-company.com"
+                            id="project-name-input"
+                            value={newLink.projectName}
+                            onChange={(e) => setNewLink({ ...newLink, projectName: e.target.value })}
+                            placeholder="Enter display name"
                           />
+                        </div>
+
+                        <div className="flex justify-end space-x-2">
+                          <Button variant="outline" onClick={() => setIsAddLinkOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleAddLink}>
+                            Add Link
+                          </Button>
                         </div>
                       </div>
-                      <Button variant="outline" onClick={() => handleTestConnection('Harbor')}>
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Test Harbor Connection
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-                  {/* MANO Integration */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <span>🎛️</span>
-                        <span>MANO Project Mapping</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Map this project to a MANO orchestrator for network function management.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="mano-project-id">MANO Project ID</Label>
-                          <Input
-                            id="mano-project-id"
-                            value={projectLinks.mano.projectId}
-                            onChange={(e) => setProjectLinks({
-                              ...projectLinks,
-                              mano: { ...projectLinks.mano, projectId: e.target.value }
-                            })}
-                            placeholder="ecp-001"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="mano-orchestrator-url">MANO Orchestrator URL</Label>
-                          <Input
-                            id="mano-orchestrator-url"
-                            value={projectLinks.mano.orchestratorUrl}
-                            onChange={(e) => setProjectLinks({
-                              ...projectLinks,
-                              mano: { ...projectLinks.mano, orchestratorUrl: e.target.value }
-                            })}
-                            placeholder="https://mano.your-company.com"
-                          />
-                        </div>
-                      </div>
-                      <Button variant="outline" onClick={() => handleTestConnection('MANO')}>
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Test MANO Connection
-                      </Button>
-                    </CardContent>
-                  </Card>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </CardHeader>
+              <CardContent>
+                {projectLinks.length > 0 ? (
+                  <div className="space-y-3">
+                    {projectLinks.map((link) => (
+                      <Card key={link.id} className="border">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-xl">{getTypeIcon(link.linkType)}</span>
+                              <div>
+                                <div className="flex items-center space-x-2">
+                                  <h4 className="font-semibold">{link.systemLinkName}</h4>
+                                  <Badge className={getTypeBadgeColor(link.linkType)}>
+                                    {link.linkType.toUpperCase()}
+                                  </Badge>
+                                  <Badge variant={link.enabled ? 'default' : 'secondary'}>
+                                    {link.enabled ? 'Enabled' : 'Disabled'}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {link.linkType === 'jira' ? 'Project Key:' :
+                                   link.linkType === 'harbor' ? 'Project Name:' :
+                                   'Project:'} {link.projectKey}
+                                  {link.projectName && link.projectName !== link.projectKey && (
+                                    <span> ({link.projectName})</span>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => toggleLinkStatus(link.id)}
+                              >
+                                {link.enabled ? 'Disable' : 'Enable'}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleTestConnection(link)}
+                                disabled={!link.enabled}
+                              >
+                                <RefreshCw className="h-4 w-4 mr-1" />
+                                Test
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveLink(link.id)}
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Link className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Project Links</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Connect this project to external systems to enable integrations.
+                    </p>
+                    <Button onClick={() => setIsAddLinkOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add First Link
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </SidebarInset>
       </div>
