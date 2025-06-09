@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,12 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { TableFilters } from "@/components/ui/table-filters";
+import { Plus, Edit, Trash2, Eye, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const ApplicationStatus = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchValue, setSearchValue] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [environmentFilter, setEnvironmentFilter] = useState('all');
+  const [sortField, setSortField] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const itemsPerPage = 5;
 
   const applications = [
@@ -149,6 +154,33 @@ export const ApplicationStatus = () => {
     }
   ];
 
+  // Filter and search logic
+  const filteredApplications = applications.filter(app => {
+    const matchesSearch = app.name.toLowerCase().includes(searchValue.toLowerCase()) ||
+                         app.version.toLowerCase().includes(searchValue.toLowerCase()) ||
+                         app.environment.toLowerCase().includes(searchValue.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+    const matchesEnvironment = environmentFilter === 'all' || app.environment === environmentFilter;
+    return matchesSearch && matchesStatus && matchesEnvironment;
+  });
+
+  // Sort logic
+  const sortedApplications = [...filteredApplications].sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue = a[sortField as keyof typeof a];
+    let bValue = b[sortField as keyof typeof b];
+    
+    if (sortField === 'issues') {
+      aValue = Number(aValue);
+      bValue = Number(bValue);
+    }
+    
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Released": return "bg-green-100 text-green-800";
@@ -175,10 +207,28 @@ export const ApplicationStatus = () => {
   };
 
   // Pagination logic
-  const totalPages = Math.ceil(applications.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedApplications.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentApplications = applications.slice(startIndex, endIndex);
+  const currentApplications = sortedApplications.slice(startIndex, endIndex);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchValue('');
+    setStatusFilter('all');
+    setEnvironmentFilter('all');
+    setSortField('');
+    setSortDirection('asc');
+    setCurrentPage(1);
+  };
 
   const handleAddApplication = () => {
     console.log('Opening add application dialog...');
@@ -224,17 +274,92 @@ export const ApplicationStatus = () => {
             <CardTitle>Application Status Overview</CardTitle>
           </CardHeader>
           <CardContent>
+            <TableFilters
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+              searchPlaceholder="Search applications..."
+              filters={[
+                {
+                  field: 'status',
+                  label: 'Status',
+                  value: statusFilter,
+                  onValueChange: setStatusFilter,
+                  options: [
+                    { value: 'all', label: 'All Status' },
+                    { value: 'Released', label: 'Released' },
+                    { value: 'In Development', label: 'In Development' },
+                    { value: 'Pending Release', label: 'Pending Release' }
+                  ]
+                },
+                {
+                  field: 'environment',
+                  label: 'Environment',
+                  value: environmentFilter,
+                  onValueChange: setEnvironmentFilter,
+                  options: [
+                    { value: 'all', label: 'All Environments' },
+                    { value: 'Production', label: 'Production' },
+                    { value: 'Staging', label: 'Staging' },
+                    { value: 'Development', label: 'Development' },
+                    { value: 'App Store', label: 'App Store' },
+                    { value: 'Play Store', label: 'Play Store' }
+                  ]
+                }
+              ]}
+              onClearFilters={clearFilters}
+            />
+
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Application</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center">
+                      Application
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </div>
+                  </TableHead>
                   <TableHead>Version</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Environment</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center">
+                      Status
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('environment')}
+                  >
+                    <div className="flex items-center">
+                      Environment
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </div>
+                  </TableHead>
                   <TableHead>Health</TableHead>
-                  <TableHead>Issues</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('issues')}
+                  >
+                    <div className="flex items-center">
+                      Issues
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </div>
+                  </TableHead>
                   <TableHead>Coverage</TableHead>
-                  <TableHead>Last Deploy</TableHead>
+                  <TableHead 
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleSort('lastDeployment')}
+                  >
+                    <div className="flex items-center">
+                      Last Deploy
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </div>
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -327,7 +452,7 @@ export const ApplicationStatus = () => {
 
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-gray-500">
-                Showing {startIndex + 1} to {Math.min(endIndex, applications.length)} of {applications.length} applications
+                Showing {startIndex + 1} to {Math.min(endIndex, sortedApplications.length)} of {sortedApplications.length} applications
               </div>
               <Pagination>
                 <PaginationContent>
