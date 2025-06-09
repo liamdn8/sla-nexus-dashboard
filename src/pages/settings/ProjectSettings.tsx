@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -101,6 +100,7 @@ const ProjectSettings = () => {
   const [newLink, setNewLink] = useState({
     systemLinkId: '',
     projectKey: '',
+    linkName: '',
   });
 
   const getTypeIcon = (type: string) => {
@@ -133,10 +133,10 @@ const ProjectSettings = () => {
   };
 
   const handleAddLink = () => {
-    if (!newLink.systemLinkId || !newLink.projectKey) {
+    if (!newLink.systemLinkId || !newLink.projectKey || !newLink.linkName) {
       toast({
         title: "Error",
-        description: "Please select a system link and enter a project key.",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
@@ -151,14 +151,14 @@ const ProjectSettings = () => {
       systemLinkName: selectedSystemLink.name,
       linkType: selectedSystemLink.type,
       projectKey: newLink.projectKey,
-      projectMappingName: newLink.projectKey,
+      projectMappingName: newLink.linkName,
       baseUrl: selectedSystemLink.baseUrl,
       createdAt: new Date().toISOString().split('T')[0],
       lastSync: 'Never',
     };
 
     setProjectLinks([...projectLinks, projectLink]);
-    setNewLink({ systemLinkId: '', projectKey: '' });
+    setNewLink({ systemLinkId: '', projectKey: '', linkName: '' });
     setIsAddLinkOpen(false);
 
     toast({
@@ -340,7 +340,17 @@ const ProjectSettings = () => {
                       </DialogHeader>
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="system-link">System Link</Label>
+                          <Label htmlFor="link-name">Link Name *</Label>
+                          <Input
+                            id="link-name"
+                            value={newLink.linkName}
+                            onChange={(e) => setNewLink({ ...newLink, linkName: e.target.value })}
+                            placeholder="Enter a name for this link"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="system-link">System Link *</Label>
                           <Select
                             value={newLink.systemLinkId}
                             onValueChange={(value) => setNewLink({ ...newLink, systemLinkId: value })}
@@ -371,10 +381,10 @@ const ProjectSettings = () => {
 
                         <div className="space-y-2">
                           <Label htmlFor="project-key-input">
-                            {selectedSystemLink?.type === 'jira' ? 'Jira Project Key' :
-                             selectedSystemLink?.type === 'harbor' ? 'Harbor Project Name' :
-                             selectedSystemLink?.type === 'confluence' ? 'Space Key' :
-                             'Project Key'}
+                            {selectedSystemLink?.type === 'jira' ? 'Jira Project Key *' :
+                             selectedSystemLink?.type === 'harbor' ? 'Harbor Project Name *' :
+                             selectedSystemLink?.type === 'confluence' ? 'Space Key *' :
+                             'Project Key *'}
                           </Label>
                           <Input
                             id="project-key-input"

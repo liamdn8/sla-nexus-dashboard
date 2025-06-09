@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -6,10 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Clock, GitCommit, Tag, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ReleaseDialog } from "@/components/ReleaseDialog";
+import { QuickNavigation } from "@/components/QuickNavigation";
+import { Calendar, Clock, GitCommit, Tag, User, Plus, Edit } from "lucide-react";
 
 const Releases = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingRelease, setEditingRelease] = useState(null);
 
   const releases = [
     {
@@ -23,7 +28,8 @@ const Releases = () => {
       commits: 23,
       features: ['New authentication flow', 'Enhanced UI components', 'Performance improvements'],
       bugFixes: 8,
-      application: 'Frontend Web App'
+      application: 'Frontend Web App',
+      description: 'Major frontend improvements'
     },
     {
       id: 'v1.8.2',
@@ -36,7 +42,8 @@ const Releases = () => {
       commits: 15,
       features: ['Enhanced security protocols', 'API rate limiting', 'New endpoint validation'],
       bugFixes: 5,
-      application: 'Backend API'
+      application: 'Backend API',
+      description: 'Security enhancements'
     },
     {
       id: 'v1.5.1',
@@ -49,7 +56,8 @@ const Releases = () => {
       commits: 8,
       features: ['Push notification improvements', 'Offline mode enhancements'],
       bugFixes: 12,
-      application: 'Mobile App'
+      application: 'Mobile App',
+      description: 'Bug fixes and improvements'
     },
     {
       id: 'v0.9.3',
@@ -62,7 +70,8 @@ const Releases = () => {
       commits: 31,
       features: ['Real-time analytics', 'Custom dashboard widgets', 'Export functionality'],
       bugFixes: 3,
-      application: 'Analytics Dashboard'
+      application: 'Analytics Dashboard',
+      description: 'New analytics features'
     }
   ];
 
@@ -95,6 +104,22 @@ const Releases = () => {
     inDevelopment: releases.filter(r => r.status === 'In Development').length
   };
 
+  const handleCreateRelease = (releaseData: any) => {
+    console.log('Creating release:', releaseData);
+    // Handle release creation logic here
+  };
+
+  const handleEditRelease = (release: any) => {
+    setEditingRelease(release);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateRelease = (releaseData: any) => {
+    console.log('Updating release:', releaseData);
+    // Handle release update logic here
+    setEditingRelease(null);
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
@@ -123,114 +148,147 @@ const Releases = () => {
                 <Badge variant="outline" className="text-blue-600">
                   {filteredReleases.length} releases
                 </Badge>
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Release
+                </Button>
               </div>
             </div>
           </div>
 
-          <div className="container mx-auto px-8 py-6 space-y-8">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="flex">
+            <div className="flex-1 container mx-auto px-8 py-6 space-y-8">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Total Releases</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{releaseStats.total}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Released</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">{releaseStats.released}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-yellow-600">{releaseStats.pending}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-600">In Development</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-purple-600">{releaseStats.inDevelopment}</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Releases Table */}
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Releases</CardTitle>
+                <CardHeader>
+                  <CardTitle>Release History</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{releaseStats.total}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Released</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{releaseStats.released}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">{releaseStats.pending}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">In Development</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">{releaseStats.inDevelopment}</div>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead>Release</TableHead>
+                        <TableHead>Application</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Environment</TableHead>
+                        <TableHead>Features</TableHead>
+                        <TableHead>Bug Fixes</TableHead>
+                        <TableHead>Commits</TableHead>
+                        <TableHead>Deploy Date</TableHead>
+                        <TableHead>Deployed By</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredReleases.map((release) => (
+                        <TableRow key={release.id} className="hover:bg-gray-50">
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Tag className="h-4 w-4 text-gray-400" />
+                              <div>
+                                <div className="font-medium">{release.version}</div>
+                                <div className="text-sm text-gray-500">{release.name}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">{release.application}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(release.status)}>
+                              {release.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{release.environment}</TableCell>
+                          <TableCell>{release.features.length}</TableCell>
+                          <TableCell>{release.bugFixes}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-1">
+                              <GitCommit className="h-4 w-4 text-gray-400" />
+                              <span>{release.commits}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm">{new Date(release.releaseDate).toLocaleDateString()}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-1">
+                              <User className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm">{release.deployedBy}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditRelease(release)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </div>
-
-            {/* Releases Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Release History</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead>Release</TableHead>
-                      <TableHead>Application</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Environment</TableHead>
-                      <TableHead>Features</TableHead>
-                      <TableHead>Bug Fixes</TableHead>
-                      <TableHead>Commits</TableHead>
-                      <TableHead>Deploy Date</TableHead>
-                      <TableHead>Deployed By</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredReleases.map((release) => (
-                      <TableRow key={release.id} className="hover:bg-gray-50">
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Tag className="h-4 w-4 text-gray-400" />
-                            <div>
-                              <div className="font-medium">{release.version}</div>
-                              <div className="text-sm text-gray-500">{release.name}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">{release.application}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(release.status)}>
-                            {release.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{release.environment}</TableCell>
-                        <TableCell>{release.features.length}</TableCell>
-                        <TableCell>{release.bugFixes}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-1">
-                            <GitCommit className="h-4 w-4 text-gray-400" />
-                            <span>{release.commits}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{new Date(release.releaseDate).toLocaleDateString()}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-1">
-                            <User className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{release.deployedBy}</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            
+            <div className="w-80 border-l border-gray-200 p-6">
+              <QuickNavigation />
+            </div>
           </div>
         </main>
+
+        <ReleaseDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          onSave={handleCreateRelease}
+        />
+
+        <ReleaseDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          release={editingRelease}
+          onSave={handleUpdateRelease}
+        />
       </div>
     </SidebarProvider>
   );
