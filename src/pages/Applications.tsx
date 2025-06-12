@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -6,11 +5,13 @@ import { ApplicationStatus } from "@/components/ApplicationStatus";
 import { ApplicationSummary } from "@/components/ApplicationSummary";
 import { ApplicationDialog } from "@/components/ApplicationDialog";
 import { QuickNavigation } from "@/components/QuickNavigation";
+import { FloatingQuickActions } from "@/components/FloatingQuickActions";
 import { TableFilters } from "@/components/ui/table-filters";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Plus, Edit, Smartphone, Server, Database } from "lucide-react";
 
 interface SearchTag {
@@ -29,88 +30,41 @@ const Applications = () => {
   const [healthFilter, setHealthFilter] = useState<string[]>([]);
   const [deploymentFrom, setDeploymentFrom] = useState<Date | undefined>();
   const [deploymentTo, setDeploymentTo] = useState<Date | undefined>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  // Sample application data
-  const applicationData = [
-    {
-      id: 'APP-001',
-      name: 'E-commerce Web App',
-      version: 'v2.1.4',
-      environment: 'Production',
-      status: 'Active',
-      health: 'Healthy',
-      lastDeployment: '2024-01-15',
-      type: 'Web Application',
-      instances: 3
-    },
-    {
-      id: 'APP-002',
-      name: 'Mobile Banking API',
-      version: 'v1.8.2',
-      environment: 'Production',
-      status: 'Active',
-      health: 'Warning',
-      lastDeployment: '2024-01-12',
-      type: 'API Service',
-      instances: 5
-    },
-    {
-      id: 'APP-003',
-      name: 'Analytics Dashboard',
-      version: 'v3.0.1',
-      environment: 'Staging',
-      status: 'Inactive',
-      health: 'Critical',
-      lastDeployment: '2024-01-08',
-      type: 'Dashboard',
-      instances: 2
-    },
-    {
-      id: 'APP-004',
-      name: 'Payment Gateway',
-      version: 'v1.5.0',
-      environment: 'Production',
-      status: 'Active',
-      health: 'Healthy',
-      lastDeployment: '2024-01-20',
-      type: 'Service',
-      instances: 4
-    },
-    {
-      id: 'APP-005',
-      name: 'User Management System',
-      version: 'v2.3.1',
-      environment: 'Development',
-      status: 'Development',
-      health: 'Healthy',
-      lastDeployment: '2024-01-22',
-      type: 'System',
-      instances: 1
-    }
-  ];
+  // Generate comprehensive application data
+  const generateApplications = () => {
+    const baseApps = [
+      "E-commerce Web App", "Mobile Banking API", "Analytics Dashboard", "Payment Gateway",
+      "User Management System", "Notification Service", "File Storage API", "Search Engine",
+      "Reporting Service", "Authentication Service", "Customer Portal", "Admin Dashboard",
+      "Content Management System", "Message Queue Service", "Cache Service", "Load Balancer",
+      "Database Service", "Monitoring System", "Backup Service", "Data Processing Pipeline"
+    ];
 
-  // Generate additional applications for testing
-  const additionalApps = Array.from({ length: 15 }, (_, index) => {
-    const appNum = 6 + index;
-    const environments = ['Production', 'Staging', 'Development'];
-    const statuses = ['Active', 'Inactive', 'Development', 'Maintenance'];
-    const healths = ['Healthy', 'Warning', 'Critical'];
-    const types = ['Web Application', 'API Service', 'Dashboard', 'Service', 'System'];
-    
-    return {
-      id: `APP-${appNum.toString().padStart(3, '0')}`,
-      name: `Application ${appNum}`,
-      version: `v${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 10)}.${Math.floor(Math.random() * 10)}`,
-      environment: environments[index % environments.length],
-      status: statuses[index % statuses.length],
-      health: healths[index % healths.length],
-      lastDeployment: '2024-01-15',
-      type: types[index % types.length],
-      instances: Math.floor(Math.random() * 5) + 1
-    };
-  });
+    const environments = ["Production", "Staging", "Development"];
+    const statuses = ["Active", "Inactive", "Development", "Maintenance"];
+    const healths = ["Healthy", "Warning", "Critical"];
+    const types = ["Web Application", "API Service", "Dashboard", "Service", "System"];
 
-  const allApplications = [...applicationData, ...additionalApps];
+    return baseApps.map((name, index) => {
+      const appNum = index + 1;
+      return {
+        id: `APP-${appNum.toString().padStart(3, '0')}`,
+        name,
+        version: `v${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 10)}.${Math.floor(Math.random() * 10)}`,
+        environment: environments[index % environments.length],
+        status: statuses[index % statuses.length],
+        health: healths[index % healths.length],
+        lastDeployment: new Date(2024, Math.floor(Math.random() * 2), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+        type: types[index % types.length],
+        instances: Math.floor(Math.random() * 5) + 1
+      };
+    });
+  };
+
+  const allApplications = generateApplications();
 
   const getSearchSuggestions = () => {
     const suggestions = [];
@@ -238,6 +192,12 @@ const Applications = () => {
     return matchesSearchTags && matchesStatus && matchesHealth && matchesDate;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentApplications = filteredApplications.slice(startIndex, endIndex);
+
   const clearAllFilters = () => {
     setSearchInput('');
     setSearchTags([]);
@@ -245,6 +205,7 @@ const Applications = () => {
     setHealthFilter([]);
     setDeploymentFrom(undefined);
     setDeploymentTo(undefined);
+    setCurrentPage(1);
   };
 
   const addSearchTag = (tag: SearchTag) => {
@@ -387,7 +348,7 @@ const Applications = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredApplications.map((app) => (
+                        {currentApplications.map((app) => (
                           <TableRow key={app.id} className="hover:bg-gray-50 cursor-pointer transition-colors">
                             <TableCell>
                               <div className="flex items-center space-x-3">
@@ -433,6 +394,51 @@ const Applications = () => {
                         ))}
                       </TableBody>
                     </Table>
+
+                    <div className="flex items-center justify-between p-4">
+                      <div className="text-sm text-gray-500">
+                        Showing {startIndex + 1} to {Math.min(endIndex, filteredApplications.length)} of {filteredApplications.length} applications
+                      </div>
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                          </PaginationItem>
+                          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                            return (
+                              <PaginationItem key={pageNum}>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(pageNum)}
+                                  isActive={currentPage === pageNum}
+                                  className="cursor-pointer"
+                                >
+                                  {pageNum}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          })}
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
                   </CardContent>
                 </Card>
               </section>
@@ -443,6 +449,8 @@ const Applications = () => {
             </div>
           </div>
         </main>
+
+        <FloatingQuickActions />
 
         <ApplicationDialog
           open={isCreateDialogOpen}

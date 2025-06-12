@@ -1,91 +1,246 @@
+
 import React, { useState } from 'react';
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { TableFilters } from "@/components/ui/table-filters";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ReleaseDialog } from "@/components/ReleaseDialog";
-import { QuickNavigation } from "@/components/QuickNavigation";
-import { Calendar, Clock, GitCommit, Tag, User, Plus, Edit } from "lucide-react";
+import { Calendar, GitCommit, Tag, User, Plus, Edit } from "lucide-react";
+
+interface SearchTag {
+  field: string;
+  value: string;
+  label: string;
+}
 
 const Releases = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingRelease, setEditingRelease] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [deploymentFrom, setDeploymentFrom] = useState<Date | undefined>();
+  const [deploymentTo, setDeploymentTo] = useState<Date | undefined>();
+  const itemsPerPage = 10;
 
-  const releases = [
+  // Generate comprehensive release data
+  const generateReleases = () => {
+    const applications = [
+      "Frontend Web App", "Backend API", "Mobile App (iOS)", "Mobile App (Android)", 
+      "Analytics Dashboard", "Payment Gateway", "User Management System", 
+      "Notification Service", "File Storage API", "Search Engine", 
+      "Reporting Service", "Authentication Service", "E-commerce Platform",
+      "Customer Portal", "Admin Dashboard", "Content Management System"
+    ];
+
+    const environments = ["Production", "Staging", "Development", "App Store", "Play Store", "Testing"];
+    const statuses = ["Released", "In Review", "Pending", "In Development", "Testing", "Failed"];
+    const developers = ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson", "Alex Chen", "Emma Davis", "David Brown", "Lisa Garcia"];
+
+    const releases = [];
+
+    applications.forEach((app, appIndex) => {
+      // Generate 2-4 releases per application
+      const releaseCount = Math.floor(Math.random() * 3) + 2;
+      
+      for (let i = 0; i < releaseCount; i++) {
+        const majorVersion = Math.floor(Math.random() * 3) + 1;
+        const minorVersion = Math.floor(Math.random() * 10);
+        const patchVersion = i; // Incremental patch versions
+        const version = `v${majorVersion}.${minorVersion}.${patchVersion}`;
+        
+        releases.push({
+          id: `${app.toLowerCase().replace(/\s+/g, '-')}-${version}`,
+          name: `${app} ${version} Release`,
+          version,
+          status: statuses[Math.floor(Math.random() * statuses.length)],
+          environment: environments[appIndex % environments.length],
+          releaseDate: new Date(2024, Math.floor(Math.random() * 6), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
+          deployedBy: developers[Math.floor(Math.random() * developers.length)],
+          commits: Math.floor(Math.random() * 50) + 5,
+          features: Math.floor(Math.random() * 10) + 1,
+          bugFixes: Math.floor(Math.random() * 15) + 1,
+          application: app,
+          description: `Release ${version} for ${app}`
+        });
+      }
+    });
+
+    return releases.sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
+  };
+
+  const releases = generateReleases();
+
+  // Search and filter functions
+  const addSearchTag = (tag: SearchTag) => {
+    setSearchTags(prev => [...prev, tag]);
+  };
+
+  const removeSearchTag = (index: number) => {
+    setSearchTags(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getSearchSuggestions = () => {
+    const suggestions = [];
+    const inputLower = searchInput.toLowerCase();
+    
+    if (!searchInput) {
+      return [
+        { type: 'field', field: 'Release', value: 'Release:', label: 'Release' },
+        { type: 'field', field: 'Application', value: 'Application:', label: 'Application' },
+        { type: 'field', field: 'Environment', value: 'Environment:', label: 'Environment' },
+        { type: 'field', field: 'Deployed By', value: 'Deployed By:', label: 'Deployed By' }
+      ];
+    }
+
+    if (inputLower.includes(':')) {
+      const [fieldPart, valuePart] = searchInput.split(':');
+      const field = fieldPart.trim();
+      const value = valuePart.trim();
+      
+      if (field.toLowerCase() === 'release' && value) {
+        releases.forEach(release => {
+          if (release.version.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'Release', 
+              value: `Release:${release.version}`, 
+              label: `Release: ${release.version}`,
+              operator: ':'
+            });
+          }
+        });
+      } else if (field.toLowerCase() === 'application' && value) {
+        releases.forEach(release => {
+          if (release.application.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'Application', 
+              value: `Application:${release.application}`, 
+              label: `Application: ${release.application}`,
+              operator: '='
+            });
+          }
+        });
+      } else if (field.toLowerCase() === 'environment' && value) {
+        releases.forEach(release => {
+          if (release.environment.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'Environment', 
+              value: `Environment:${release.environment}`, 
+              label: `Environment: ${release.environment}`,
+              operator: '='
+            });
+          }
+        });
+      } else if (field.toLowerCase() === 'deployed by' && value) {
+        releases.forEach(release => {
+          if (release.deployedBy.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'Deployed By', 
+              value: `Deployed By:${release.deployedBy}`, 
+              label: `Deployed By: ${release.deployedBy}`,
+              operator: '='
+            });
+          }
+        });
+      }
+    } else {
+      ['release', 'application', 'environment', 'deployed by'].forEach(field => {
+        if (field.includes(inputLower)) {
+          const capitalizedField = field.split(' ').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' ');
+          suggestions.push({ 
+            type: 'field', 
+            field: capitalizedField, 
+            value: `${capitalizedField}:`, 
+            label: capitalizedField 
+          });
+        }
+      });
+    }
+    
+    return suggestions.slice(0, 8);
+  };
+
+  const toggleStatusFilter = (status: string) => {
+    if (status === 'All') {
+      setStatusFilter([]);
+    } else {
+      setStatusFilter(prev => 
+        prev.includes(status) 
+          ? prev.filter(s => s !== status)
+          : [...prev, status]
+      );
+    }
+  };
+
+  const filteredReleases = releases.filter(release => {
+    // Search tags filter
+    let matchesSearchTags = true;
+    if (searchTags.length > 0) {
+      matchesSearchTags = searchTags.every(tag => {
+        if (tag.field === 'Release') {
+          return release.version.toLowerCase().includes(tag.value.toLowerCase());
+        } else if (tag.field === 'Application') {
+          return release.application.toLowerCase().includes(tag.value.toLowerCase());
+        } else if (tag.field === 'Environment') {
+          return release.environment.toLowerCase().includes(tag.value.toLowerCase());
+        } else if (tag.field === 'Deployed By') {
+          return release.deployedBy.toLowerCase().includes(tag.value.toLowerCase());
+        }
+        return true;
+      });
+    }
+    
+    // Status filter
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(release.status);
+    
+    // Date filter
+    let matchesDate = true;
+    if (deploymentFrom || deploymentTo) {
+      const releaseDate = new Date(release.releaseDate);
+      if (deploymentFrom && releaseDate < deploymentFrom) matchesDate = false;
+      if (deploymentTo && releaseDate > deploymentTo) matchesDate = false;
+    }
+    
+    return matchesSearchTags && matchesStatus && matchesDate;
+  });
+
+  const clearAllFilters = () => {
+    setSearchInput('');
+    setSearchTags([]);
+    setStatusFilter([]);
+    setDeploymentFrom(undefined);
+    setDeploymentTo(undefined);
+    setCurrentPage(1);
+  };
+
+  const filterGroups = [
     {
-      id: 'v2.1.0',
-      name: 'Frontend Enhancement Release',
-      version: 'v2.1.0',
-      status: 'Released',
-      environment: 'Production',
-      releaseDate: '2024-05-25',
-      deployedBy: 'John Doe',
-      commits: 23,
-      features: ['New authentication flow', 'Enhanced UI components', 'Performance improvements'],
-      bugFixes: 8,
-      application: 'Frontend Web App',
-      description: 'Major frontend improvements'
-    },
-    {
-      id: 'v1.8.2',
-      name: 'Backend API Security Update',
-      version: 'v1.8.2',
-      status: 'In Review',
-      environment: 'Staging',
-      releaseDate: '2024-05-28',
-      deployedBy: 'Jane Smith',
-      commits: 15,
-      features: ['Enhanced security protocols', 'API rate limiting', 'New endpoint validation'],
-      bugFixes: 5,
-      application: 'Backend API',
-      description: 'Security enhancements'
-    },
-    {
-      id: 'v1.5.1',
-      name: 'Mobile App Bug Fixes',
-      version: 'v1.5.1',
-      status: 'Pending',
-      environment: 'Development',
-      releaseDate: '2024-05-30',
-      deployedBy: 'Mike Johnson',
-      commits: 8,
-      features: ['Push notification improvements', 'Offline mode enhancements'],
-      bugFixes: 12,
-      application: 'Mobile App',
-      description: 'Bug fixes and improvements'
-    },
-    {
-      id: 'v0.9.3',
-      name: 'Analytics Dashboard Beta',
-      version: 'v0.9.3',
-      status: 'In Development',
-      environment: 'Development',
-      releaseDate: '2024-06-05',
-      deployedBy: 'Sarah Wilson',
-      commits: 31,
-      features: ['Real-time analytics', 'Custom dashboard widgets', 'Export functionality'],
-      bugFixes: 3,
-      application: 'Analytics Dashboard',
-      description: 'New analytics features'
+      key: 'status',
+      label: 'Status',
+      options: ['Released', 'In Review', 'Pending', 'In Development', 'Testing', 'Failed'],
+      values: statusFilter,
+      onToggle: toggleStatusFilter
     }
   ];
 
-  const statusOptions = [
-    { value: 'all', label: 'All Releases' },
-    { value: 'Released', label: 'Released' },
-    { value: 'In Review', label: 'In Review' },
-    { value: 'Pending', label: 'Pending' },
-    { value: 'In Development', label: 'In Development' }
-  ];
-
-  const filteredReleases = selectedStatus === 'all' 
-    ? releases 
-    : releases.filter(release => release.status === selectedStatus);
+  // Pagination logic
+  const totalPages = Math.ceil(filteredReleases.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentReleases = filteredReleases.slice(startIndex, endIndex);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,6 +248,8 @@ const Releases = () => {
       case 'In Review': return 'bg-blue-100 text-blue-800';
       case 'Pending': return 'bg-yellow-100 text-yellow-800';
       case 'In Development': return 'bg-purple-100 text-purple-800';
+      case 'Testing': return 'bg-orange-100 text-orange-800';
+      case 'Failed': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -106,7 +263,6 @@ const Releases = () => {
 
   const handleCreateRelease = (releaseData: any) => {
     console.log('Creating release:', releaseData);
-    // Handle release creation logic here
   };
 
   const handleEditRelease = (release: any) => {
@@ -116,7 +272,6 @@ const Releases = () => {
 
   const handleUpdateRelease = (releaseData: any) => {
     console.log('Updating release:', releaseData);
-    // Handle release update logic here
     setEditingRelease(null);
   };
 
@@ -133,18 +288,6 @@ const Releases = () => {
                 <p className="text-gray-600 mt-1">Track and manage application releases across environments</p>
               </div>
               <div className="flex items-center space-x-4">
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <Badge variant="outline" className="text-blue-600">
                   {filteredReleases.length} releases
                 </Badge>
@@ -194,6 +337,30 @@ const Releases = () => {
                 </Card>
               </div>
 
+              {/* Search and Filter */}
+              <Card>
+                <CardContent className="pt-6">
+                  <TableFilters
+                    searchInput={searchInput}
+                    onSearchInputChange={setSearchInput}
+                    searchTags={searchTags}
+                    onAddSearchTag={addSearchTag}
+                    onRemoveSearchTag={removeSearchTag}
+                    searchSuggestions={getSearchSuggestions()}
+                    filterGroups={filterGroups}
+                    dateFilters={{
+                      from: deploymentFrom,
+                      to: deploymentTo,
+                      onFromChange: setDeploymentFrom,
+                      onToChange: setDeploymentTo,
+                      label: 'Deploy Date'
+                    }}
+                    onClearAll={clearAllFilters}
+                    placeholder="Find release by version, application, environment, or developer"
+                  />
+                </CardContent>
+              </Card>
+
               {/* Releases Table */}
               <Card>
                 <CardHeader>
@@ -216,7 +383,7 @@ const Releases = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredReleases.map((release) => (
+                      {currentReleases.map((release) => (
                         <TableRow key={release.id} className="hover:bg-gray-50">
                           <TableCell>
                             <div className="flex items-center space-x-2">
@@ -234,7 +401,7 @@ const Releases = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>{release.environment}</TableCell>
-                          <TableCell>{release.features.length}</TableCell>
+                          <TableCell>{release.features}</TableCell>
                           <TableCell>{release.bugFixes}</TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-1">
@@ -267,12 +434,53 @@ const Releases = () => {
                       ))}
                     </TableBody>
                   </Table>
+
+                  <div className="flex items-center justify-between p-4">
+                    <div className="text-sm text-gray-500">
+                      Showing {startIndex + 1} to {Math.min(endIndex, filteredReleases.length)} of {filteredReleases.length} releases
+                    </div>
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          return (
+                            <PaginationItem key={pageNum}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNum)}
+                                isActive={currentPage === pageNum}
+                                className="cursor-pointer"
+                              >
+                                {pageNum}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
                 </CardContent>
               </Card>
-            </div>
-            
-            <div className="w-80 border-l border-gray-200 p-6">
-              <QuickNavigation />
             </div>
           </div>
         </main>

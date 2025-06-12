@@ -24,142 +24,44 @@ export const ApplicationStatus = () => {
   const [environmentFilter, setEnvironmentFilter] = useState<string[]>([]);
   const [sortField, setSortField] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
-  const applications = [
-    {
-      id: "app-001",
-      name: "Frontend Web App",
-      version: "v2.1.0",
-      status: "Released",
-      environment: "Production",
-      lastDeployment: "2024-05-25",
-      health: "Healthy",
-      issues: 3,
-      coverage: "94%"
-    },
-    {
-      id: "app-002",
-      name: "Backend API",
-      version: "v1.8.2",
-      status: "In Development",
-      environment: "Staging",
-      lastDeployment: "2024-05-24",
-      health: "Testing",
-      issues: 7,
-      coverage: "87%"
-    },
-    {
-      id: "app-003",
-      name: "Mobile App (iOS)",
-      version: "v1.5.0",
-      status: "Released",
-      environment: "App Store",
-      lastDeployment: "2024-05-20",
-      health: "Healthy",
-      issues: 1,
-      coverage: "91%"
-    },
-    {
-      id: "app-004",
-      name: "Mobile App (Android)",
-      version: "v1.5.1",
-      status: "Pending Release",
-      environment: "Play Store",
-      lastDeployment: "2024-05-26",
-      health: "Ready",
-      issues: 2,
-      coverage: "89%"
-    },
-    {
-      id: "app-005",
-      name: "Analytics Dashboard",
-      version: "v0.9.3",
-      status: "In Development",
-      environment: "Development",
-      lastDeployment: "2024-05-27",
-      health: "Development",
-      issues: 12,
-      coverage: "76%"
-    },
-    {
-      id: "app-006",
-      name: "Payment Gateway",
-      version: "v2.0.1",
-      status: "Released",
-      environment: "Production",
-      lastDeployment: "2024-05-23",
-      health: "Healthy",
-      issues: 0,
-      coverage: "96%"
-    },
-    {
-      id: "app-007",
-      name: "User Management System",
-      version: "v1.7.4",
-      status: "Pending Release",
-      environment: "Staging",
-      lastDeployment: "2024-05-28",
-      health: "Ready",
-      issues: 4,
-      coverage: "88%"
-    },
-    {
-      id: "app-008",
-      name: "Notification Service",
-      version: "v1.3.2",
-      status: "In Development",
-      environment: "Development",
-      lastDeployment: "2024-05-29",
-      health: "Testing",
-      issues: 8,
-      coverage: "82%"
-    },
-    {
-      id: "app-009",
-      name: "File Storage API",
-      version: "v2.2.0",
-      status: "Released",
-      environment: "Production",
-      lastDeployment: "2024-05-22",
-      health: "Healthy",
-      issues: 1,
-      coverage: "93%"
-    },
-    {
-      id: "app-010",
-      name: "Search Engine",
-      version: "v1.1.5",
-      status: "In Development",
-      environment: "Development",
-      lastDeployment: "2024-05-30",
-      health: "Development",
-      issues: 15,
-      coverage: "79%"
-    },
-    {
-      id: "app-011",
-      name: "Reporting Service",
-      version: "v1.4.8",
-      status: "Pending Release",
-      environment: "Staging",
-      lastDeployment: "2024-05-26",
-      health: "Ready",
-      issues: 3,
-      coverage: "90%"
-    },
-    {
-      id: "app-012",
-      name: "Authentication Service",
-      version: "v3.0.0",
-      status: "Released",
-      environment: "Production",
-      lastDeployment: "2024-05-21",
-      health: "Healthy",
-      issues: 2,
-      coverage: "97%"
-    }
-  ];
+  // Generate comprehensive application data
+  const generateApplications = () => {
+    const baseApps = [
+      "Frontend Web App", "Backend API", "Mobile App (iOS)", "Mobile App (Android)", 
+      "Analytics Dashboard", "Payment Gateway", "User Management System", 
+      "Notification Service", "File Storage API", "Search Engine", 
+      "Reporting Service", "Authentication Service", "E-commerce Platform",
+      "Customer Portal", "Admin Dashboard", "Content Management System",
+      "Message Queue Service", "Cache Service", "Load Balancer", "Database Service"
+    ];
+
+    const environments = ["Production", "Staging", "Development", "App Store", "Play Store", "Testing"];
+    const statuses = ["Released", "In Development", "Pending Release", "Testing", "Maintenance"];
+    const healths = ["Healthy", "Testing", "Ready", "Development", "Warning", "Critical"];
+
+    return baseApps.map((name, index) => {
+      const appId = `app-${(index + 1).toString().padStart(3, '0')}`;
+      const majorVersion = Math.floor(Math.random() * 3) + 1;
+      const minorVersion = Math.floor(Math.random() * 10);
+      const patchVersion = Math.floor(Math.random() * 10);
+      
+      return {
+        id: appId,
+        name,
+        version: `v${majorVersion}.${minorVersion}.${patchVersion}`,
+        status: statuses[index % statuses.length],
+        environment: environments[index % environments.length],
+        lastDeployment: new Date(2024, 4, Math.floor(Math.random() * 30) + 1).toISOString().split('T')[0],
+        health: healths[index % healths.length],
+        issues: Math.floor(Math.random() * 20),
+        coverage: `${Math.floor(Math.random() * 30) + 70}%`
+      };
+    });
+  };
+
+  const applications = generateApplications();
 
   // Add the missing functions
   const addSearchTag = (tag: SearchTag) => {
@@ -218,6 +120,8 @@ export const ApplicationStatus = () => {
       case "Released": return "bg-green-100 text-green-800";
       case "In Development": return "bg-blue-100 text-blue-800";
       case "Pending Release": return "bg-yellow-100 text-yellow-800";
+      case "Testing": return "bg-purple-100 text-purple-800";
+      case "Maintenance": return "bg-orange-100 text-orange-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
@@ -228,6 +132,8 @@ export const ApplicationStatus = () => {
       case "Testing": return "bg-blue-100 text-blue-800";
       case "Ready": return "bg-green-100 text-green-800";
       case "Development": return "bg-yellow-100 text-yellow-800";
+      case "Warning": return "bg-yellow-100 text-yellow-800";
+      case "Critical": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
@@ -379,14 +285,14 @@ export const ApplicationStatus = () => {
     {
       key: 'status',
       label: 'Status',
-      options: ['Released', 'In Development', 'Pending Release'],
+      options: ['Released', 'In Development', 'Pending Release', 'Testing', 'Maintenance'],
       values: statusFilter,
       onToggle: toggleStatusFilter
     },
     {
       key: 'environment',
       label: 'Environment',
-      options: ['Production', 'Staging', 'Development', 'App Store', 'Play Store'],
+      options: ['Production', 'Staging', 'Development', 'App Store', 'Play Store', 'Testing'],
       values: environmentFilter,
       onToggle: toggleEnvironmentFilter
     }
@@ -512,7 +418,7 @@ export const ApplicationStatus = () => {
                       </Tooltip>
                     </TableCell>
                     <TableCell>
-                      <span className={app.issues > 5 ? "text-red-600 font-medium" : "text-gray-700"}>
+                      <span className={app.issues > 10 ? "text-red-600 font-medium" : "text-gray-700"}>
                         {app.issues}
                       </span>
                     </TableCell>
@@ -582,17 +488,29 @@ export const ApplicationStatus = () => {
                       className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                     />
                   </PaginationItem>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(page)}
-                        isActive={currentPage === page}
-                        className="cursor-pointer"
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(pageNum)}
+                          isActive={currentPage === pageNum}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}

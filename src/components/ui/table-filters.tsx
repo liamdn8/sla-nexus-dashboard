@@ -132,9 +132,13 @@ export const TableFilters = ({
               value={searchInput}
               onChange={(e) => {
                 onSearchInputChange(e.target.value);
-                setShowSearchSuggestions(e.target.value.length > 0 || e.target.value === '');
+                setShowSearchSuggestions(true);
               }}
               onFocus={() => setShowSearchSuggestions(true)}
+              onBlur={() => {
+                // Delay hiding to allow click on suggestions
+                setTimeout(() => setShowSearchSuggestions(false), 200);
+              }}
               onKeyPress={handleKeyPress}
               className="pl-10 pr-4 transition-all duration-200 ease-in-out focus:ring-2 focus:ring-blue-500/20"
             />
