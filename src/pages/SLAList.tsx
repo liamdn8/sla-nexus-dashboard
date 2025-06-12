@@ -135,8 +135,8 @@ const SLAList = () => {
   ];
 
   // Generate additional SLAs to reach 50
-  const additionalSLAs = Array.from({ length: 25 }, (_, index) => {
-    const slaNum = 26 + index;
+  const additionalSLAs = Array.from({ length: 45 }, (_, index) => {
+    const slaNum = 6 + index;
     const projects = ['project-1', 'project-2', 'project-3', 'project-4', 'project-5', 'project-6'];
     const projectNames = ['E-commerce Platform', 'Mobile Banking App', 'Healthcare Portal', 'Learning Management System', 'CRM System', 'Analytics Dashboard'];
     const priorities = ['Critical', 'High', 'Medium', 'Low'];
@@ -242,8 +242,8 @@ const SLAList = () => {
       }
       
       setSearchInput('');
-      setShowSearchSuggestions(false);
     }
+    setShowSearchSuggestions(false);
   };
 
   // Remove search tag
@@ -426,7 +426,10 @@ const SLAList = () => {
                                 <div
                                   key={index}
                                   className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm rounded transition-colors duration-150"
-                                  onClick={() => handleSearchSuggestionClick(suggestion)}
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    handleSearchSuggestionClick(suggestion);
+                                  }}
                                 >
                                   <div className="font-medium">{suggestion.label}</div>
                                   {suggestion.type === 'value' && (
