@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SLAListTable } from "@/components/sla/SLAListTable";
@@ -18,11 +19,11 @@ import { cn } from "@/lib/utils";
 const SLAList = () => {
   const [selectedProject, setSelectedProject] = useState<string>('all');
   const [searchValue, setSearchValue] = useState<string>('');
-  const [searchColumn, setSearchColumn] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deadlineFrom, setDeadlineFrom] = useState<Date | undefined>();
   const [deadlineTo, setDeadlineTo] = useState<Date | undefined>();
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState<boolean>(false);
 
   const projects = [
     { id: 'all', name: 'All Projects' },
@@ -125,6 +126,45 @@ const SLAList = () => {
     }
   ];
 
+  // Search suggestions based on input
+  const getSearchSuggestions = () => {
+    const suggestions = [];
+    
+    if (searchValue.toLowerCase().includes('id:') || searchValue.toLowerCase().includes('sla-')) {
+      // Show SLA ID suggestions
+      slaData.forEach(sla => {
+        if (sla.id.toLowerCase().includes(searchValue.toLowerCase().replace('id:', ''))) {
+          suggestions.push({ type: 'id', value: sla.id, label: `SLA ID: ${sla.id}` });
+        }
+      });
+    } else if (searchValue.toLowerCase().includes('title:')) {
+      // Show title suggestions
+      slaData.forEach(sla => {
+        if (sla.title.toLowerCase().includes(searchValue.toLowerCase().replace('title:', ''))) {
+          suggestions.push({ type: 'title', value: sla.title, label: `Title: ${sla.title}` });
+        }
+      });
+    } else if (searchValue) {
+      // Show field suggestions when user starts typing
+      suggestions.push(
+        { type: 'field', value: `id:${searchValue}`, label: `Search SLA ID for "${searchValue}"` },
+        { type: 'field', value: `title:${searchValue}`, label: `Search Title for "${searchValue}"` }
+      );
+    }
+    
+    return suggestions.slice(0, 5);
+  };
+
+  // Parse search value to extract field and term
+  const parseSearchValue = (value: string) => {
+    if (value.includes('id:')) {
+      return { field: 'id', term: value.replace('id:', '').trim() };
+    } else if (value.includes('title:')) {
+      return { field: 'title', term: value.replace('title:', '').trim() };
+    }
+    return { field: 'all', term: value };
+  };
+
   // Filter logic
   const filteredSLAs = slaData.filter(sla => {
     // Project filter
@@ -133,13 +173,14 @@ const SLAList = () => {
     // Search filter
     let matchesSearch = true;
     if (searchValue) {
-      if (searchColumn === 'id') {
-        matchesSearch = sla.id.toLowerCase().includes(searchValue.toLowerCase());
-      } else if (searchColumn === 'title') {
-        matchesSearch = sla.title.toLowerCase().includes(searchValue.toLowerCase());
+      const { field, term } = parseSearchValue(searchValue);
+      if (field === 'id') {
+        matchesSearch = sla.id.toLowerCase().includes(term.toLowerCase());
+      } else if (field === 'title') {
+        matchesSearch = sla.title.toLowerCase().includes(term.toLowerCase());
       } else {
-        matchesSearch = sla.id.toLowerCase().includes(searchValue.toLowerCase()) ||
-                      sla.title.toLowerCase().includes(searchValue.toLowerCase());
+        matchesSearch = sla.id.toLowerCase().includes(term.toLowerCase()) ||
+                      sla.title.toLowerCase().includes(term.toLowerCase());
       }
     }
     
@@ -164,7 +205,6 @@ const SLAList = () => {
 
   const clearFilters = () => {
     setSearchValue('');
-    setSearchColumn('all');
     setPriorityFilter('all');
     setStatusFilter('all');
     setDeadlineFrom(undefined);
@@ -172,6 +212,11 @@ const SLAList = () => {
   };
 
   const hasActiveFilters = searchValue || priorityFilter !== 'all' || statusFilter !== 'all' || deadlineFrom || deadlineTo;
+
+  const handleSearchSuggestionClick = (suggestion: any) => {
+    setSearchValue(suggestion.value);
+    setShowSearchSuggestions(false);
+  };
 
   return (
     <SidebarProvider>
@@ -211,108 +256,150 @@ const SLAList = () => {
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2 flex-1">
-                    {/* Search */}
-                    <div className="relative flex items-center gap-2">
-                      <Search className="h-4 w-4 text-gray-500" />
+                    {/* AWS-style Search */}
+                    <div className="relative flex-1 max-w-md">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                       <Input
-                        placeholder="Search..."
+                        placeholder="Search SLAs... (try id: or title:)"
                         value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        className="w-64"
+                        onChange={(e) => {
+                          setSearchValue(e.target.value);
+                          setShowSearchSuggestions(e.target.value.length > 0);
+                        }}
+                        onFocus={() => setShowSearchSuggestions(searchValue.length > 0)}
+                        onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
+                        className="pl-10"
                       />
-                      <Select value={searchColumn} onValueChange={setSearchColumn}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          <SelectItem value="id">SLA ID</SelectItem>
-                          <SelectItem value="title">SLA Title</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      
+                      {/* Search Suggestions */}
+                      {showSearchSuggestions && (
+                        <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                          {getSearchSuggestions().map((suggestion, index) => (
+                            <div
+                              key={index}
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                              onClick={() => handleSearchSuggestionClick(suggestion)}
+                            >
+                              {suggestion.label}
+                            </div>
+                          ))}
+                          {getSearchSuggestions().length === 0 && searchValue && (
+                            <div className="px-3 py-2 text-sm text-gray-500">
+                              No suggestions found
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
-                    {/* Filters */}
-                    <div className="flex items-center gap-2">
-                      <Filter className="h-4 w-4 text-gray-500" />
-                      
-                      {/* Priority Filter */}
-                      <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Priority" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Priority</SelectItem>
-                          <SelectItem value="Critical">Critical</SelectItem>
-                          <SelectItem value="High">High</SelectItem>
-                          <SelectItem value="Medium">Medium</SelectItem>
-                          <SelectItem value="Low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      {/* Status Filter */}
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="Done">Done</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
-                          <SelectItem value="Planning">Planning</SelectItem>
-                          <SelectItem value="To Do">To Do</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      {/* Deadline Date Range */}
-                      <div className="flex items-center gap-1">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-32 justify-start text-left font-normal",
-                                !deadlineFrom && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {deadlineFrom ? format(deadlineFrom, "MMM dd") : "From"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={deadlineFrom}
-                              onSelect={setDeadlineFrom}
-                              className="p-3 pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
+                    {/* Filter Dropdown Button */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="flex items-center gap-2">
+                          <Filter className="h-4 w-4" />
+                          Filters
+                          {hasActiveFilters && (
+                            <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                              {[priorityFilter !== 'all', statusFilter !== 'all', deadlineFrom || deadlineTo].filter(Boolean).length}
+                            </Badge>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="start">
+                        <DropdownMenuLabel>Filter Options</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
                         
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-32 justify-start text-left font-normal",
-                                !deadlineTo && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {deadlineTo ? format(deadlineTo, "MMM dd") : "To"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={deadlineTo}
-                              onSelect={setDeadlineTo}
-                              className="p-3 pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
+                        {/* Priority Filter */}
+                        <div className="px-2 py-2">
+                          <label className="text-sm font-medium mb-2 block">Priority</label>
+                          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Priority</SelectItem>
+                              <SelectItem value="Critical">Critical</SelectItem>
+                              <SelectItem value="High">High</SelectItem>
+                              <SelectItem value="Medium">Medium</SelectItem>
+                              <SelectItem value="Low">Low</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <DropdownMenuSeparator />
+                        
+                        {/* Status Filter */}
+                        <div className="px-2 py-2">
+                          <label className="text-sm font-medium mb-2 block">Status</label>
+                          <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Status</SelectItem>
+                              <SelectItem value="Done">Done</SelectItem>
+                              <SelectItem value="In Progress">In Progress</SelectItem>
+                              <SelectItem value="Planning">Planning</SelectItem>
+                              <SelectItem value="To Do">To Do</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <DropdownMenuSeparator />
+                        
+                        {/* Deadline Filter */}
+                        <div className="px-2 py-2">
+                          <label className="text-sm font-medium mb-2 block">Deadline Range</label>
+                          <div className="space-y-2">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !deadlineFrom && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {deadlineFrom ? format(deadlineFrom, "MMM dd, yyyy") : "From date"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={deadlineFrom}
+                                  onSelect={setDeadlineFrom}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !deadlineTo && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {deadlineTo ? format(deadlineTo, "MMM dd, yyyy") : "To date"}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={deadlineTo}
+                                  onSelect={setDeadlineTo}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   
                   {/* Clear Filters */}
@@ -329,7 +416,7 @@ const SLAList = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     {searchValue && (
                       <Badge variant="secondary" className="flex items-center gap-1">
-                        {searchColumn === 'all' ? 'Search' : searchColumn === 'id' ? 'SLA ID' : 'SLA Title'}: {searchValue}
+                        Search: {searchValue}
                         <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchValue('')} />
                       </Badge>
                     )}
