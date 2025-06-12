@@ -16,9 +16,16 @@ import { Search, Filter, Calendar as CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+interface SearchTag {
+  field: string;
+  value: string;
+  label: string;
+}
+
 const SLAList = () => {
   const [selectedProject, setSelectedProject] = useState<string>('all');
-  const [searchValue, setSearchValue] = useState<string>('');
+  const [searchInput, setSearchInput] = useState<string>('');
+  const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deadlineFrom, setDeadlineFrom] = useState<Date | undefined>();
@@ -126,43 +133,92 @@ const SLAList = () => {
     }
   ];
 
-  // Search suggestions based on input
+  // Get search field suggestions
   const getSearchSuggestions = () => {
     const suggestions = [];
+    const inputLower = searchInput.toLowerCase();
     
-    if (searchValue.toLowerCase().includes('id:') || searchValue.toLowerCase().includes('sla-')) {
-      // Show SLA ID suggestions
-      slaData.forEach(sla => {
-        if (sla.id.toLowerCase().includes(searchValue.toLowerCase().replace('id:', ''))) {
-          suggestions.push({ type: 'id', value: sla.id, label: `SLA ID: ${sla.id}` });
-        }
-      });
-    } else if (searchValue.toLowerCase().includes('title:')) {
-      // Show title suggestions
-      slaData.forEach(sla => {
-        if (sla.title.toLowerCase().includes(searchValue.toLowerCase().replace('title:', ''))) {
-          suggestions.push({ type: 'title', value: sla.title, label: `Title: ${sla.title}` });
-        }
-      });
-    } else if (searchValue) {
-      // Show field suggestions when user starts typing
-      suggestions.push(
-        { type: 'field', value: `id:${searchValue}`, label: `Search SLA ID for "${searchValue}"` },
-        { type: 'field', value: `title:${searchValue}`, label: `Search Title for "${searchValue}"` }
-      );
+    if (!searchInput) {
+      return [
+        { type: 'field', field: 'SLA ID', value: 'SLA ID:', label: 'SLA ID' },
+        { type: 'field', field: 'SLA Title', value: 'SLA Title:', label: 'SLA Title' }
+      ];
+    }
+
+    // Check if user is typing a field name
+    if (inputLower.includes(':')) {
+      const [fieldPart, valuePart] = searchInput.split(':');
+      const field = fieldPart.trim();
+      const value = valuePart.trim();
+      
+      if (field.toLowerCase() === 'sla id' && value) {
+        slaData.forEach(sla => {
+          if (sla.id.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'SLA ID', 
+              value: `SLA ID:${sla.id}`, 
+              label: `SLA ID: ${sla.id}`,
+              operator: '='
+            });
+          }
+        });
+      } else if (field.toLowerCase() === 'sla title' && value) {
+        slaData.forEach(sla => {
+          if (sla.title.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'SLA Title', 
+              value: `SLA Title:${sla.title}`, 
+              label: `SLA Title: ${sla.title}`,
+              operator: ':'
+            });
+          }
+        });
+      }
+    } else {
+      // Show field suggestions
+      if ('sla id'.includes(inputLower) || 'id'.includes(inputLower)) {
+        suggestions.push({ type: 'field', field: 'SLA ID', value: 'SLA ID:', label: 'SLA ID' });
+      }
+      if ('sla title'.includes(inputLower) || 'title'.includes(inputLower)) {
+        suggestions.push({ type: 'field', field: 'SLA Title', value: 'SLA Title:', label: 'SLA Title' });
+      }
     }
     
-    return suggestions.slice(0, 5);
+    return suggestions.slice(0, 8);
   };
 
-  // Parse search value to extract field and term
-  const parseSearchValue = (value: string) => {
-    if (value.includes('id:')) {
-      return { field: 'id', term: value.replace('id:', '').trim() };
-    } else if (value.includes('title:')) {
-      return { field: 'title', term: value.replace('title:', '').trim() };
+  // Handle search suggestion selection
+  const handleSearchSuggestionClick = (suggestion: any) => {
+    if (suggestion.type === 'field') {
+      setSearchInput(suggestion.value);
+    } else if (suggestion.type === 'value') {
+      // Create a search tag
+      const [field, value] = suggestion.value.split(':');
+      const newTag: SearchTag = {
+        field: field.trim(),
+        value: value.trim(),
+        label: `${field.trim()}: ${value.trim()}`
+      };
+      
+      // Check if tag already exists
+      const tagExists = searchTags.some(tag => 
+        tag.field === newTag.field && tag.value === newTag.value
+      );
+      
+      if (!tagExists) {
+        setSearchTags([...searchTags, newTag]);
+      }
+      
+      setSearchInput('');
+      setShowSearchSuggestions(false);
     }
-    return { field: 'all', term: value };
+  };
+
+  // Remove search tag
+  const removeSearchTag = (indexToRemove: number) => {
+    setSearchTags(searchTags.filter((_, index) => index !== indexToRemove));
   };
 
   // Filter logic
@@ -170,18 +226,17 @@ const SLAList = () => {
     // Project filter
     const matchesProject = selectedProject === 'all' || sla.projectId === selectedProject;
     
-    // Search filter
-    let matchesSearch = true;
-    if (searchValue) {
-      const { field, term } = parseSearchValue(searchValue);
-      if (field === 'id') {
-        matchesSearch = sla.id.toLowerCase().includes(term.toLowerCase());
-      } else if (field === 'title') {
-        matchesSearch = sla.title.toLowerCase().includes(term.toLowerCase());
-      } else {
-        matchesSearch = sla.id.toLowerCase().includes(term.toLowerCase()) ||
-                      sla.title.toLowerCase().includes(term.toLowerCase());
-      }
+    // Search tags filter
+    let matchesSearchTags = true;
+    if (searchTags.length > 0) {
+      matchesSearchTags = searchTags.every(tag => {
+        if (tag.field === 'SLA ID') {
+          return sla.id.toLowerCase().includes(tag.value.toLowerCase());
+        } else if (tag.field === 'SLA Title') {
+          return sla.title.toLowerCase().includes(tag.value.toLowerCase());
+        }
+        return true;
+      });
     }
     
     // Priority filter
@@ -198,24 +253,44 @@ const SLAList = () => {
       if (deadlineTo && deadlineDate > deadlineTo) matchesDeadline = false;
     }
     
-    return matchesProject && matchesSearch && matchesPriority && matchesStatus && matchesDeadline;
+    return matchesProject && matchesSearchTags && matchesPriority && matchesStatus && matchesDeadline;
   });
 
   const selectedProjectName = projects.find(p => p.id === selectedProject)?.name || 'All Projects';
 
-  const clearFilters = () => {
-    setSearchValue('');
+  const clearAllFilters = () => {
+    setSearchInput('');
+    setSearchTags([]);
     setPriorityFilter('all');
     setStatusFilter('all');
     setDeadlineFrom(undefined);
     setDeadlineTo(undefined);
   };
 
-  const hasActiveFilters = searchValue || priorityFilter !== 'all' || statusFilter !== 'all' || deadlineFrom || deadlineTo;
+  const hasActiveFilters = searchTags.length > 0 || priorityFilter !== 'all' || statusFilter !== 'all' || deadlineFrom || deadlineTo;
 
-  const handleSearchSuggestionClick = (suggestion: any) => {
-    setSearchValue(suggestion.value);
-    setShowSearchSuggestions(false);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchInput.includes(':')) {
+      const [field, value] = searchInput.split(':');
+      if (field.trim() && value.trim()) {
+        const newTag: SearchTag = {
+          field: field.trim(),
+          value: value.trim(),
+          label: `${field.trim()}: ${value.trim()}`
+        };
+        
+        const tagExists = searchTags.some(tag => 
+          tag.field === newTag.field && tag.value === newTag.value
+        );
+        
+        if (!tagExists) {
+          setSearchTags([...searchTags, newTag]);
+        }
+        
+        setSearchInput('');
+        setShowSearchSuggestions(false);
+      }
+    }
   };
 
   return (
@@ -257,37 +332,46 @@ const SLAList = () => {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2 flex-1">
                     {/* AWS-style Search */}
-                    <div className="relative flex-1 max-w-md">
+                    <div className="relative flex-1 max-w-2xl">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
                       <Input
-                        placeholder="Search SLAs... (try id: or title:)"
-                        value={searchValue}
+                        placeholder="Find SLA by attribute or tag (case-sensitive)"
+                        value={searchInput}
                         onChange={(e) => {
-                          setSearchValue(e.target.value);
-                          setShowSearchSuggestions(e.target.value.length > 0);
+                          setSearchInput(e.target.value);
+                          setShowSearchSuggestions(e.target.value.length > 0 || e.target.value === '');
                         }}
-                        onFocus={() => setShowSearchSuggestions(searchValue.length > 0)}
+                        onFocus={() => setShowSearchSuggestions(true)}
                         onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
-                        className="pl-10"
+                        onKeyPress={handleKeyPress}
+                        className="pl-10 pr-4"
                       />
                       
-                      {/* Search Suggestions */}
+                      {/* Search Suggestions Dropdown */}
                       {showSearchSuggestions && (
-                        <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                          {getSearchSuggestions().map((suggestion, index) => (
-                            <div
-                              key={index}
-                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                              onClick={() => handleSearchSuggestionClick(suggestion)}
-                            >
-                              {suggestion.label}
-                            </div>
-                          ))}
-                          {getSearchSuggestions().length === 0 && searchValue && (
-                            <div className="px-3 py-2 text-sm text-gray-500">
-                              No suggestions found
-                            </div>
-                          )}
+                        <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-80 overflow-y-auto">
+                          <div className="p-2">
+                            <div className="text-xs text-gray-500 mb-2">Search by</div>
+                            {getSearchSuggestions().map((suggestion, index) => (
+                              <div
+                                key={index}
+                                className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm rounded"
+                                onClick={() => handleSearchSuggestionClick(suggestion)}
+                              >
+                                <div className="font-medium">{suggestion.label}</div>
+                                {suggestion.type === 'value' && (
+                                  <div className="text-xs text-gray-500">
+                                    {suggestion.field} {suggestion.operator} {suggestion.value.split(':')[1]}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                            {getSearchSuggestions().length === 0 && searchInput && (
+                              <div className="px-3 py-2 text-sm text-gray-500">
+                                No suggestions found
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -404,22 +488,24 @@ const SLAList = () => {
                   
                   {/* Clear Filters */}
                   {hasActiveFilters && (
-                    <Button variant="outline" size="sm" onClick={clearFilters}>
-                      <X className="h-4 w-4 mr-1" />
-                      Clear
+                    <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                      Clear filters
                     </Button>
                   )}
                 </div>
                 
-                {/* Active Filters Display */}
-                {hasActiveFilters && (
+                {/* Active Search Tags and Filters Display */}
+                {(searchTags.length > 0 || hasActiveFilters) && (
                   <div className="flex items-center gap-2 flex-wrap">
-                    {searchValue && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        Search: {searchValue}
-                        <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchValue('')} />
+                    {searchTags.map((tag, index) => (
+                      <Badge key={index} variant="default" className="flex items-center gap-1 bg-blue-100 text-blue-800 border-blue-200">
+                        {tag.label}
+                        <X 
+                          className="h-3 w-3 cursor-pointer hover:bg-blue-200 rounded" 
+                          onClick={() => removeSearchTag(index)} 
+                        />
                       </Badge>
-                    )}
+                    ))}
                     {priorityFilter !== 'all' && (
                       <Badge variant="secondary" className="flex items-center gap-1">
                         Priority: {priorityFilter}
