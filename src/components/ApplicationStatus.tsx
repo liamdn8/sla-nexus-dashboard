@@ -9,12 +9,19 @@ import { TableFilters } from "@/components/ui/table-filters";
 import { Plus, Edit, Trash2, Eye, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+interface SearchTag {
+  field: string;
+  value: string;
+  label: string;
+}
+
 export const ApplicationStatus = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchValue, setSearchValue] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [environmentFilter, setEnvironmentFilter] = useState('all');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTags, setSearchTags] = useState<SearchTag[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [environmentFilter, setEnvironmentFilter] = useState<string[]>([]);
   const [sortField, setSortField] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const itemsPerPage = 5;
@@ -156,12 +163,28 @@ export const ApplicationStatus = () => {
 
   // Filter and search logic
   const filteredApplications = applications.filter(app => {
-    const matchesSearch = app.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-                         app.version.toLowerCase().includes(searchValue.toLowerCase()) ||
-                         app.environment.toLowerCase().includes(searchValue.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
-    const matchesEnvironment = environmentFilter === 'all' || app.environment === environmentFilter;
-    return matchesSearch && matchesStatus && matchesEnvironment;
+    // Search tags filter
+    let matchesSearchTags = true;
+    if (searchTags.length > 0) {
+      matchesSearchTags = searchTags.every(tag => {
+        if (tag.field === 'Application') {
+          return app.name.toLowerCase().includes(tag.value.toLowerCase());
+        } else if (tag.field === 'Version') {
+          return app.version.toLowerCase().includes(tag.value.toLowerCase());
+        } else if (tag.field === 'Environment') {
+          return app.environment.toLowerCase().includes(tag.value.toLowerCase());
+        }
+        return true;
+      });
+    }
+    
+    // Status filter
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(app.status);
+    
+    // Environment filter
+    const matchesEnvironment = environmentFilter.length === 0 || environmentFilter.includes(app.environment);
+    
+    return matchesSearchTags && matchesStatus && matchesEnvironment;
   });
 
   // Sort logic
@@ -222,9 +245,10 @@ export const ApplicationStatus = () => {
   };
 
   const clearFilters = () => {
-    setSearchValue('');
-    setStatusFilter('all');
-    setEnvironmentFilter('all');
+    setSearchInput('');
+    setSearchTags([]);
+    setStatusFilter([]);
+    setEnvironmentFilter([]);
     setSortField('');
     setSortDirection('asc');
     setCurrentPage(1);
@@ -248,6 +272,116 @@ export const ApplicationStatus = () => {
   const handleViewApplication = (appId: string) => {
     navigate(`/application-detail/${appId}`);
   };
+
+  const getSearchSuggestions = () => {
+    const suggestions = [];
+    const inputLower = searchInput.toLowerCase();
+    
+    if (!searchInput) {
+      return [
+        { type: 'field', field: 'Application', value: 'Application:', label: 'Application' },
+        { type: 'field', field: 'Version', value: 'Version:', label: 'Version' },
+        { type: 'field', field: 'Environment', value: 'Environment:', label: 'Environment' }
+      ];
+    }
+
+    if (inputLower.includes(':')) {
+      const [fieldPart, valuePart] = searchInput.split(':');
+      const field = fieldPart.trim();
+      const value = valuePart.trim();
+      
+      if (field.toLowerCase() === 'application' && value) {
+        applications.forEach(app => {
+          if (app.name.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'Application', 
+              value: `Application:${app.name}`, 
+              label: `Application: ${app.name}`,
+              operator: ':'
+            });
+          }
+        });
+      } else if (field.toLowerCase() === 'version' && value) {
+        applications.forEach(app => {
+          if (app.version.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'Version', 
+              value: `Version:${app.version}`, 
+              label: `Version: ${app.version}`,
+              operator: '='
+            });
+          }
+        });
+      } else if (field.toLowerCase() === 'environment' && value) {
+        applications.forEach(app => {
+          if (app.environment.toLowerCase().includes(value.toLowerCase())) {
+            suggestions.push({ 
+              type: 'value', 
+              field: 'Environment', 
+              value: `Environment:${app.environment}`, 
+              label: `Environment: ${app.environment}`,
+              operator: '='
+            });
+          }
+        });
+      }
+    } else {
+      if ('application'.includes(inputLower)) {
+        suggestions.push({ type: 'field', field: 'Application', value: 'Application:', label: 'Application' });
+      }
+      if ('version'.includes(inputLower)) {
+        suggestions.push({ type: 'field', field: 'Version', value: 'Version:', label: 'Version' });
+      }
+      if ('environment'.includes(inputLower)) {
+        suggestions.push({ type: 'field', field: 'Environment', value: 'Environment:', label: 'Environment' });
+      }
+    }
+    
+    return suggestions.slice(0, 8);
+  };
+
+  const toggleStatusFilter = (status: string) => {
+    if (status === 'All') {
+      setStatusFilter([]);
+    } else {
+      setStatusFilter(prev => 
+        prev.includes(status) 
+          ? prev.filter(s => s !== status)
+          : [...prev, status]
+      );
+    }
+  };
+
+  const toggleEnvironmentFilter = (environment: string) => {
+    if (environment === 'All') {
+      setEnvironmentFilter([]);
+    } else {
+      setEnvironmentFilter(prev => 
+        prev.includes(environment) 
+          ? prev.filter(e => e !== environment)
+          : [...prev, environment]
+      );
+    }
+  };
+
+  const filterGroups = [
+    {
+      key: 'status',
+      label: 'Status',
+      options: ['Released', 'In Development', 'Pending Release'],
+      values: statusFilter,
+      onToggle: toggleStatusFilter
+    },
+    {
+      key: 'environment',
+      label: 'Environment',
+      options: ['Production', 'Staging', 'Development', 'App Store', 'Play Store'],
+      values: environmentFilter,
+      onToggle: toggleEnvironmentFilter
+    }
+  ];
 
   return (
     <TooltipProvider>
@@ -275,38 +409,15 @@ export const ApplicationStatus = () => {
           </CardHeader>
           <CardContent>
             <TableFilters
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-              searchPlaceholder="Search applications..."
-              filters={[
-                {
-                  field: 'status',
-                  label: 'Status',
-                  value: statusFilter,
-                  onValueChange: setStatusFilter,
-                  options: [
-                    { value: 'all', label: 'All Status' },
-                    { value: 'Released', label: 'Released' },
-                    { value: 'In Development', label: 'In Development' },
-                    { value: 'Pending Release', label: 'Pending Release' }
-                  ]
-                },
-                {
-                  field: 'environment',
-                  label: 'Environment',
-                  value: environmentFilter,
-                  onValueChange: setEnvironmentFilter,
-                  options: [
-                    { value: 'all', label: 'All Environments' },
-                    { value: 'Production', label: 'Production' },
-                    { value: 'Staging', label: 'Staging' },
-                    { value: 'Development', label: 'Development' },
-                    { value: 'App Store', label: 'App Store' },
-                    { value: 'Play Store', label: 'Play Store' }
-                  ]
-                }
-              ]}
-              onClearFilters={clearFilters}
+              searchInput={searchInput}
+              onSearchInputChange={setSearchInput}
+              searchTags={searchTags}
+              onAddSearchTag={addSearchTag}
+              onRemoveSearchTag={removeSearchTag}
+              searchSuggestions={getSearchSuggestions()}
+              filterGroups={filterGroups}
+              onClearAll={clearFilters}
+              placeholder="Find application by name, version, or environment"
             />
 
             <Table>
