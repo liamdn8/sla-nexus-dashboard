@@ -161,6 +161,15 @@ export const ApplicationStatus = () => {
     }
   ];
 
+  // Add the missing functions
+  const addSearchTag = (tag: SearchTag) => {
+    setSearchTags(prev => [...prev, tag]);
+  };
+
+  const removeSearchTag = (index: number) => {
+    setSearchTags(prev => prev.filter((_, i) => i !== index));
+  };
+
   // Filter and search logic
   const filteredApplications = applications.filter(app => {
     // Search tags filter
