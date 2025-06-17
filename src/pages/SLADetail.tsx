@@ -245,7 +245,7 @@ const SLADetail = () => {
             </section>
 
             {/* Documents Section - Moved to bottom */}
-            <SLADocumentsSection />
+            <SLADocumentsSection slaTitle={sla.title} />
           </div>
 
           {/* Bookmark Navigation - Fixed on the right */}
