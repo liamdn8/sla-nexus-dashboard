@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -8,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Package, Settings, Database, Play, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Package, Settings, Database, Play, Clock, CheckCircle, AlertCircle, User, Eye } from "lucide-react";
 
 interface WorkflowSummary {
   total: number;
@@ -86,6 +87,57 @@ const mockWorkflows: DeliveryWorkflow[] = [
   }
 ];
 
+const mockWorkflowHistory: DeliveryWorkflow[] = [
+  {
+    id: 'wf-004',
+    name: 'Legacy VoLTE v1.8.0',
+    artifactType: 'image',
+    status: 'completed',
+    progress: 100,
+    lastUpdated: '2024-06-17 09:30',
+    stages: {
+      getArtifact: 'completed',
+      pullStaging: 'completed',
+      deployStaging: 'completed',
+      verifyStaging: 'completed',
+      prodTrigger: 'completed',
+      uploadMano: 'completed'
+    }
+  },
+  {
+    id: 'wf-005',
+    name: 'IMS ConfigMap v1.4.8',
+    artifactType: 'configmap',
+    status: 'failed',
+    progress: 45,
+    lastUpdated: '2024-06-16 15:22',
+    stages: {
+      getArtifact: 'completed',
+      pullStaging: 'completed',
+      deployStaging: 'failed',
+      verifyStaging: 'pending',
+      prodTrigger: 'pending',
+      uploadMano: 'pending'
+    }
+  },
+  {
+    id: 'wf-006',
+    name: 'vOCS TOSCA Package v2.9.5',
+    artifactType: 'tosca',
+    status: 'completed',
+    progress: 100,
+    lastUpdated: '2024-06-15 11:45',
+    stages: {
+      getArtifact: 'completed',
+      pullStaging: 'completed',
+      deployStaging: 'completed',
+      verifyStaging: 'completed',
+      prodTrigger: 'completed',
+      uploadMano: 'completed'
+    }
+  }
+];
+
 const getArtifactIcon = (type: string) => {
   switch (type) {
     case 'image':
@@ -132,6 +184,10 @@ const getStatusBadgeVariant = (status: string) => {
 const DeliveryWorkflows = () => {
   const navigate = useNavigate();
   const [workflows] = useState<DeliveryWorkflow[]>(mockWorkflows);
+  const [workflowHistory] = useState<DeliveryWorkflow[]>(mockWorkflowHistory);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const itemsPerPage = 10;
 
   const summary: Record<string, WorkflowSummary> = {
     image: { total: 5, pending: 1, inProgress: 2, completed: 2, failed: 0 },
@@ -142,6 +198,67 @@ const DeliveryWorkflows = () => {
   const handleWorkflowClick = (workflowId: string) => {
     navigate(`/delivery-workflows/${workflowId}`);
   };
+
+  const paginatedHistory = workflowHistory.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(workflowHistory.length / itemsPerPage);
+
+  const StagesTableRow = ({ workflow }: { workflow: DeliveryWorkflow }) => (
+    <TableRow 
+      className="cursor-pointer hover:bg-gray-50"
+      onClick={() => handleWorkflowClick(workflow.id)}
+    >
+      <TableCell className="font-medium">{workflow.name}</TableCell>
+      <TableCell>
+        <div className="flex items-center space-x-2">
+          {getArtifactIcon(workflow.artifactType)}
+          <span className="capitalize">{workflow.artifactType}</span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <Badge variant={getStatusBadgeVariant(workflow.stages.getArtifact)}>
+          {workflow.stages.getArtifact}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Badge variant={getStatusBadgeVariant(workflow.stages.pullStaging)}>
+          {workflow.stages.pullStaging}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Badge variant={getStatusBadgeVariant(workflow.stages.deployStaging)}>
+          {workflow.stages.deployStaging}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Badge variant={getStatusBadgeVariant(workflow.stages.verifyStaging)}>
+          {workflow.stages.verifyStaging === 'waiting-approval' ? 'approval' : workflow.stages.verifyStaging}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Badge variant={getStatusBadgeVariant(workflow.stages.prodTrigger)}>
+          {workflow.stages.prodTrigger === 'waiting-approval' ? 'approval' : workflow.stages.prodTrigger}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Badge variant={getStatusBadgeVariant(workflow.stages.uploadMano)}>
+          {workflow.stages.uploadMano}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Progress value={workflow.progress} className="h-2 w-20" />
+        <span className="text-xs text-muted-foreground ml-2">{workflow.progress}%</span>
+      </TableCell>
+      <TableCell>
+        <Button variant="ghost" size="sm">
+          <Eye className="h-4 w-4" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
 
   return (
     <SidebarProvider>
@@ -180,54 +297,189 @@ const DeliveryWorkflows = () => {
               ))}
             </div>
 
-            {/* Workflow List */}
+            {/* Active Workflows */}
             <Card>
               <CardHeader>
-                <CardTitle>Active Workflows</CardTitle>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Active Workflows</CardTitle>
+                    <CardDescription>
+                      Current workflows in progress
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={viewMode === 'cards' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('cards')}
+                    >
+                      Cards
+                    </Button>
+                    <Button
+                      variant={viewMode === 'table' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setViewMode('table')}
+                    >
+                      Table
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {viewMode === 'cards' ? (
+                  <div className="space-y-4">
+                    {workflows.map((workflow) => (
+                      <Card 
+                        key={workflow.id} 
+                        className="cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => handleWorkflowClick(workflow.id)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              {getArtifactIcon(workflow.artifactType)}
+                              <div>
+                                <h3 className="font-medium">{workflow.name}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  Last updated: {workflow.lastUpdated}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                              <div className="text-right">
+                                <div className="flex items-center space-x-2">
+                                  {getStatusIcon(workflow.status)}
+                                  <Badge variant={getStatusBadgeVariant(workflow.status)}>
+                                    {workflow.status.replace('-', ' ')}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  Progress: {workflow.progress}%
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <Progress value={workflow.progress} className="h-2" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Workflow Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Get Artifact</TableHead>
+                        <TableHead>Pull Staging</TableHead>
+                        <TableHead>Deploy Staging</TableHead>
+                        <TableHead>Verify Staging</TableHead>
+                        <TableHead>Prod Trigger</TableHead>
+                        <TableHead>Upload MANO</TableHead>
+                        <TableHead>Progress</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {workflows.map((workflow) => (
+                        <StagesTableRow key={workflow.id} workflow={workflow} />
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Workflow History */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Workflow History</CardTitle>
                 <CardDescription>
-                  Click on a workflow to view detailed stages and progress
+                  Previous workflow executions
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {workflows.map((workflow) => (
-                    <Card 
-                      key={workflow.id} 
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => handleWorkflowClick(workflow.id)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Workflow Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Last Updated</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedHistory.map((workflow) => (
+                      <TableRow 
+                        key={workflow.id}
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleWorkflowClick(workflow.id)}
+                      >
+                        <TableCell className="font-medium">{workflow.name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
                             {getArtifactIcon(workflow.artifactType)}
-                            <div>
-                              <h3 className="font-medium">{workflow.name}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Last updated: {workflow.lastUpdated}
-                              </p>
-                            </div>
+                            <span className="capitalize">{workflow.artifactType}</span>
                           </div>
-                          <div className="flex items-center space-x-4">
-                            <div className="text-right">
-                              <div className="flex items-center space-x-2">
-                                {getStatusIcon(workflow.status)}
-                                <Badge variant={getStatusBadgeVariant(workflow.status)}>
-                                  {workflow.status.replace('-', ' ')}
-                                </Badge>
-                              </div>
-                              <div className="text-sm text-muted-foreground mt-1">
-                                Progress: {workflow.progress}%
-                              </div>
-                            </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {getStatusIcon(workflow.status)}
+                            <Badge variant={getStatusBadgeVariant(workflow.status)}>
+                              {workflow.status.replace('-', ' ')}
+                            </Badge>
                           </div>
-                        </div>
-                        <div className="mt-4">
-                          <Progress value={workflow.progress} className="h-2" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </TableCell>
+                        <TableCell>
+                          <Progress value={workflow.progress} className="h-2 w-20" />
+                          <span className="text-xs text-muted-foreground ml-2">{workflow.progress}%</span>
+                        </TableCell>
+                        <TableCell>{workflow.lastUpdated}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                
+                {totalPages > 1 && (
+                  <div className="mt-4">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          />
+                        </PaginationItem>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ))}
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
