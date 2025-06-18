@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User, Home, FolderOpen } from "lucide-react";
+import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User, Home, FolderOpen, Workflow } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const mainItems = [
@@ -65,6 +65,11 @@ const deploymentItems = [
     title: "CNF List",
     url: "/cnf-list",
     icon: Database,
+  },
+  {
+    title: "Delivery Workflows",
+    url: "/delivery-workflows",
+    icon: Workflow,
   },
   {
     title: "Environment Mapping",

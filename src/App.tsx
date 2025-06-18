@@ -20,6 +20,8 @@ import CNFDetail from "./pages/CNFDetail";
 import CNFList from "./pages/CNFList";
 import NotFound from "./pages/NotFound";
 import Customers from "./pages/Customers";
+import DeliveryWorkflows from "./pages/DeliveryWorkflows";
+import DeliveryWorkflowDetail from "./pages/DeliveryWorkflowDetail";
 import ExternalTools from "./pages/settings/ExternalTools";
 import EnvironmentMapping from "./pages/settings/EnvironmentMapping";
 import DevelopmentMapping from "./pages/settings/DevelopmentMapping";
@@ -53,6 +55,8 @@ const App = () => (
           <Route path="/environment-management" element={<EnvironmentManagement />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/cnf-list" element={<CNFList />} />
+          <Route path="/delivery-workflows" element={<DeliveryWorkflows />} />
+          <Route path="/delivery-workflows/:workflowId" element={<DeliveryWorkflowDetail />} />
           <Route path="/environment-detail/:systemId" element={<EnvironmentDetail />} />
           <Route path="/cnf-detail/:cnfId" element={<CNFDetail />} />
           <Route path="/settings/external-tools" element={<ExternalTools />} />
