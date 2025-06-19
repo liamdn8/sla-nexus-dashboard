@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FolderOpen, Save, Link, Plus, Trash, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { StepByStepLinkForm } from "@/components/settings/StepByStepLinkForm";
+import { AllFieldsLinkForm } from "@/components/settings/AllFieldsLinkForm";
 
 interface SystemLink {
   id: string;
@@ -38,6 +41,7 @@ const ProjectSettings = () => {
   const [isAddLinkOpen, setIsAddLinkOpen] = useState(false);
   const [isEditLinkOpen, setIsEditLinkOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<ProjectLink | null>(null);
+  const [activeFormView, setActiveFormView] = useState<'step-by-step' | 'all-fields'>('step-by-step');
   
   const [projectInfo, setProjectInfo] = useState({
     name: 'E-Commerce Platform',
@@ -132,33 +136,23 @@ const ProjectSettings = () => {
     });
   };
 
-  const handleAddLink = () => {
-    if (!newLink.systemLinkId || !newLink.projectKey || !newLink.linkName) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const selectedSystemLink = availableSystemLinks.find(sl => sl.id === newLink.systemLinkId);
+  const handleAddLink = (linkData: { linkName: string; systemLinkId: string; projectKey: string; }) => {
+    const selectedSystemLink = availableSystemLinks.find(sl => sl.id === linkData.systemLinkId);
     if (!selectedSystemLink) return;
 
     const projectLink: ProjectLink = {
       id: Date.now().toString(),
-      systemLinkId: newLink.systemLinkId,
+      systemLinkId: linkData.systemLinkId,
       systemLinkName: selectedSystemLink.name,
       linkType: selectedSystemLink.type,
-      projectKey: newLink.projectKey,
-      projectMappingName: newLink.linkName,
+      projectKey: linkData.projectKey,
+      projectMappingName: linkData.linkName,
       baseUrl: selectedSystemLink.baseUrl,
       createdAt: new Date().toISOString().split('T')[0],
       lastSync: 'Never',
     };
 
     setProjectLinks([...projectLinks, projectLink]);
-    setNewLink({ systemLinkId: '', projectKey: '', linkName: '' });
     setIsAddLinkOpen(false);
 
     toast({
@@ -331,83 +325,36 @@ const ProjectSettings = () => {
                         Add Link
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Add Project Link</DialogTitle>
                         <DialogDescription>
-                          Connect this project to an external system.
+                          Connect this project to an external system using one of the available form views.
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="link-name">Link Name *</Label>
-                          <Input
-                            id="link-name"
-                            value={newLink.linkName}
-                            onChange={(e) => setNewLink({ ...newLink, linkName: e.target.value })}
-                            placeholder="Enter a name for this link"
+                      
+                      <Tabs value={activeFormView} onValueChange={(value) => setActiveFormView(value as 'step-by-step' | 'all-fields')}>
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="step-by-step">Step by Step</TabsTrigger>
+                          <TabsTrigger value="all-fields">All Fields</TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="step-by-step" className="mt-6">
+                          <StepByStepLinkForm
+                            availableSystemLinks={availableSystemLinks}
+                            onSubmit={handleAddLink}
+                            onCancel={() => setIsAddLinkOpen(false)}
                           />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="system-link">System Link *</Label>
-                          <Select
-                            value={newLink.systemLinkId}
-                            onValueChange={(value) => setNewLink({ ...newLink, systemLinkId: value })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a system link" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableSystemLinks.map((systemLink) => (
-                                <SelectItem key={systemLink.id} value={systemLink.id}>
-                                  <div className="flex items-center space-x-2">
-                                    <span>{getTypeIcon(systemLink.type)}</span>
-                                    <span>{systemLink.name}</span>
-                                    <Badge className={getTypeBadgeColor(systemLink.type)}>
-                                      {systemLink.type.toUpperCase()}
-                                    </Badge>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {selectedSystemLink && (
-                            <p className="text-sm text-muted-foreground">
-                              {selectedSystemLink.description} - {selectedSystemLink.baseUrl}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="project-key-input">
-                            {selectedSystemLink?.type === 'jira' ? 'Jira Project Key *' :
-                             selectedSystemLink?.type === 'harbor' ? 'Harbor Project Name *' :
-                             selectedSystemLink?.type === 'confluence' ? 'Space Key *' :
-                             'Project Key *'}
-                          </Label>
-                          <Input
-                            id="project-key-input"
-                            value={newLink.projectKey}
-                            onChange={(e) => setNewLink({ ...newLink, projectKey: e.target.value })}
-                            placeholder={
-                              selectedSystemLink?.type === 'jira' ? 'e.g., ECP' :
-                              selectedSystemLink?.type === 'harbor' ? 'e.g., ecommerce-platform' :
-                              selectedSystemLink?.type === 'confluence' ? 'e.g., ECP' :
-                              'Enter project identifier'
-                            }
+                        </TabsContent>
+                        
+                        <TabsContent value="all-fields" className="mt-6">
+                          <AllFieldsLinkForm
+                            availableSystemLinks={availableSystemLinks}
+                            onSubmit={handleAddLink}
+                            onCancel={() => setIsAddLinkOpen(false)}
                           />
-                        </div>
-
-                        <div className="flex justify-end space-x-2">
-                          <Button variant="outline" onClick={() => setIsAddLinkOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleAddLink}>
-                            Add Link
-                          </Button>
-                        </div>
-                      </div>
+                        </TabsContent>
+                      </Tabs>
                     </DialogContent>
                   </Dialog>
                 </div>
