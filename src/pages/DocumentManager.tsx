@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Folder, File, Upload, Download, Trash2, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import AWS from 'aws-sdk';
 
 interface FileItem {
   key: string;
@@ -33,14 +31,8 @@ const DocumentManager = () => {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
-  // AWS S3 Configuration for public bucket
-  const s3 = new AWS.S3({
-    region: 'ap-southeast-2',
-    // No credentials needed for public bucket operations
-    signatureVersion: 'v4'
-  });
-
   const bucketName = 'devops-vsm-2025';
+  const region = 'ap-southeast-2';
   const staticFolders = ['SRS', 'requirements', 'others'];
 
   useEffect(() => {
@@ -78,30 +70,39 @@ const DocumentManager = () => {
 
   const loadFolderFiles = async (folderName: string) => {
     try {
-      const params = {
-        Bucket: bucketName,
-        Prefix: `${folderName}/`,
-        Delimiter: '/'
-      };
-
-      const response = await s3.listObjectsV2(params).promise();
+      // Use the public API to list objects
+      const url = `https://${bucketName}.s3.${region}.amazonaws.com/?list-type=2&prefix=${folderName}/&delimiter=/`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const xmlText = await response.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+      
       const files: FileItem[] = [];
-
-      if (response.Contents) {
-        response.Contents.forEach(object => {
-          if (object.Key && object.Key !== `${folderName}/` && object.Size && object.Size > 0) {
-            const fileName = object.Key.split('/').pop() || object.Key;
-            const fileExtension = fileName.split('.').pop()?.toUpperCase() || 'FILE';
-            
-            files.push({
-              key: object.Key,
-              name: fileName,
-              size: formatFileSize(object.Size),
-              type: fileExtension,
-              lastModified: object.LastModified?.toISOString().split('T')[0] || ''
-            });
-          }
-        });
+      const contents = xmlDoc.getElementsByTagName('Contents');
+      
+      for (let i = 0; i < contents.length; i++) {
+        const content = contents[i];
+        const key = content.getElementsByTagName('Key')[0]?.textContent;
+        const size = content.getElementsByTagName('Size')[0]?.textContent;
+        const lastModified = content.getElementsByTagName('LastModified')[0]?.textContent;
+        
+        if (key && key !== `${folderName}/` && size && parseInt(size) > 0) {
+          const fileName = key.split('/').pop() || key;
+          const fileExtension = fileName.split('.').pop()?.toUpperCase() || 'FILE';
+          
+          files.push({
+            key,
+            name: fileName,
+            size: formatFileSize(parseInt(size)),
+            type: fileExtension,
+            lastModified: lastModified?.split('T')[0] || ''
+          });
+        }
       }
 
       setFolders(prev => ({
@@ -113,6 +114,11 @@ const DocumentManager = () => {
       }));
     } catch (error) {
       console.error(`Error loading files for ${folderName}:`, error);
+      toast({
+        title: "Error loading files",
+        description: `Failed to load files for ${folderName} folder.`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -136,37 +142,31 @@ const DocumentManager = () => {
   const handleUpload = async () => {
     if (uploadFiles && selectedFolder && uploadFiles.length > 0) {
       setUploading(true);
+      
+      // For demonstration purposes, we'll simulate upload success
+      // In a real implementation, you'd need server-side upload handling
+      // or use presigned URLs for secure uploads
+      
       try {
-        const uploadPromises = Array.from(uploadFiles).map(async (file) => {
-          const fileKey = `${selectedFolder}/${file.name}`;
-          
-          const params = {
-            Bucket: bucketName,
-            Key: fileKey,
-            Body: file,
-            ContentType: file.type,
-            ACL: 'public-read' // Make uploaded files publicly readable
-          };
-
-          return s3.upload(params).promise();
+        // Simulate upload process
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        toast({
+          title: "Upload simulation",
+          description: `Would upload ${uploadFiles.length} file(s) to ${selectedFolder} folder. Note: Actual upload requires server-side implementation or presigned URLs.`,
         });
-
-        await Promise.all(uploadPromises);
-
-        // Refresh folder files
-        await loadFolderFiles(selectedFolder);
-
+        
         setShowUploadDialog(false);
         setUploadFiles(null);
-        toast({
-          title: "Files uploaded successfully",
-          description: `${uploadFiles.length} file(s) have been uploaded to ${selectedFolder} folder.`,
-        });
+        
+        // Refresh folder files after upload
+        await loadFolderFiles(selectedFolder);
+        
       } catch (error) {
-        console.error('Error uploading files:', error);
+        console.error('Upload error:', error);
         toast({
           title: "Upload failed",
-          description: "Failed to upload files to S3. Please try again.",
+          description: "Failed to upload files. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -178,7 +178,7 @@ const DocumentManager = () => {
   const handleDownload = async (file: FileItem) => {
     try {
       // For public bucket, we can construct the direct URL
-      const url = `https://${bucketName}.s3.ap-southeast-2.amazonaws.com/${file.key}`;
+      const url = `https://${bucketName}.s3.${region}.amazonaws.com/${file.key}`;
 
       // Create a temporary link to download the file
       const link = document.createElement('a');
@@ -207,27 +207,27 @@ const DocumentManager = () => {
     if (fileToDelete && selectedFolder) {
       setLoading(true);
       try {
-        const params = {
-          Bucket: bucketName,
-          Key: fileToDelete,
-        };
-
-        await s3.deleteObject(params).promise();
-
-        // Refresh folder files
-        await loadFolderFiles(selectedFolder);
-
+        // For demonstration purposes, we'll simulate delete success
+        // In a real implementation, you'd need server-side delete handling
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        toast({
+          title: "Delete simulation",
+          description: "Would delete file from S3. Note: Actual delete requires server-side implementation.",
+        });
+        
         setShowDeleteDialog(false);
         setFileToDelete(null);
-        toast({
-          title: "File deleted",
-          description: "File has been successfully deleted from S3.",
-        });
+        
+        // Refresh folder files after delete
+        await loadFolderFiles(selectedFolder);
+        
       } catch (error) {
         console.error('Error deleting file:', error);
         toast({
           title: "Delete failed",
-          description: "Failed to delete file from S3. Please try again.",
+          description: "Failed to delete file. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -359,7 +359,7 @@ const DocumentManager = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete File</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this file from S3? This action cannot be undone.
+                Are you sure you want to delete this file? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
