@@ -341,6 +341,51 @@ export const BBPerformanceTestForm = ({
     `;
   };
 
+  // Excel-like cell component
+  const ExcelCell = ({ 
+    value, 
+    onChange, 
+    placeholder = "", 
+    className = "",
+    multiline = false 
+  }: { 
+    value: string; 
+    onChange: (value: string) => void; 
+    placeholder?: string; 
+    className?: string;
+    multiline?: boolean;
+  }) => {
+    if (multiline) {
+      return (
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`min-h-[40px] border-0 bg-transparent resize-none focus:bg-blue-50 focus:ring-1 focus:ring-blue-200 rounded-none ${className}`}
+          style={{ 
+            border: 'none',
+            boxShadow: 'none',
+            outline: 'none'
+          }}
+        />
+      );
+    }
+
+    return (
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`border-0 bg-transparent focus:bg-blue-50 focus:ring-1 focus:ring-blue-200 rounded-none h-10 ${className}`}
+        style={{ 
+          border: 'none',
+          boxShadow: 'none',
+          outline: 'none'
+        }}
+      />
+    );
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -406,168 +451,184 @@ export const BBPerformanceTestForm = ({
                   
                   {processDataList.map((process) => (
                     <TabsContent key={process.id} value={process.id} className="space-y-6">
-                      {/* Combined Table View (like in the image) */}
-                      <div className="border rounded-lg overflow-hidden">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-12 text-center">STT</TableHead>
-                              <TableHead className="w-1/4">Tiêu chí</TableHead>
-                              <TableHead className="w-1/4">Chỉ tiêu chi tiết</TableHead>
-                              <TableHead className="w-1/4">Cách thức thực hiện đánh giá</TableHead>
-                              <TableHead className="w-1/4">Kết quả</TableHead>
-                              <TableHead className="w-12"></TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {/* Environment Requirements Section */}
-                            <TableRow className="bg-gray-100">
-                              <TableCell colSpan={6} className="text-center font-semibold">
-                                I. Yêu cầu về môi trường đánh giá
-                                <Button
-                                  onClick={() => addCriteria(process.id, 'environment')}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="ml-2"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                            {process.environmentCriteria.map((item, index) => (
-                              <TableRow key={item.id}>
-                                <TableCell className="text-center">{index + 1}</TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={item.criteria}
-                                    onChange={(e) => updateCriteria(process.id, 'environment', item.id, 'criteria', e.target.value)}
-                                    placeholder="Nhập tiêu chí..."
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={item.details}
-                                    onChange={(e) => updateCriteria(process.id, 'environment', item.id, 'details', e.target.value)}
-                                    placeholder="Nhập chi tiết..."
-                                  />
-                                </TableCell>
-                                <TableCell></TableCell>
-                                <TableCell></TableCell>
-                                <TableCell>
-                                  <Button
-                                    onClick={() => removeCriteria(process.id, 'environment', item.id)}
-                                    variant="ghost"
-                                    size="sm"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
+                      {/* Excel-like Table View */}
+                      <div className="border rounded-lg overflow-hidden bg-white">
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="bg-gray-100">
+                                <th className="border border-gray-300 px-2 py-3 text-center font-semibold text-sm w-12">STT</th>
+                                <th className="border border-gray-300 px-2 py-3 text-center font-semibold text-sm min-w-[200px]">Tiêu chí</th>
+                                <th className="border border-gray-300 px-2 py-3 text-center font-semibold text-sm min-w-[200px]">Chỉ tiêu chi tiết</th>
+                                <th className="border border-gray-300 px-2 py-3 text-center font-semibold text-sm min-w-[200px]">Cách thức thực hiện đánh giá</th>
+                                <th className="border border-gray-300 px-2 py-3 text-center font-semibold text-sm min-w-[200px]">Kết quả</th>
+                                <th className="border border-gray-300 px-2 py-3 text-center font-semibold text-sm w-12"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {/* Environment Requirements Section */}
+                              <tr className="bg-blue-50">
+                                <td colSpan={6} className="border border-gray-300 px-4 py-3 text-center font-semibold text-blue-800">
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <span>I. Yêu cầu về môi trường đánh giá</span>
+                                    <Button
+                                      onClick={() => addCriteria(process.id, 'environment')}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="ml-2 h-6 w-6 p-0"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                              {process.environmentCriteria.map((item, index) => (
+                                <tr key={item.id} className="hover:bg-gray-50">
+                                  <td className="border border-gray-300 text-center text-sm py-2">{index + 1}</td>
+                                  <td className="border border-gray-300 p-0">
+                                    <ExcelCell
+                                      value={item.criteria}
+                                      onChange={(value) => updateCriteria(process.id, 'environment', item.id, 'criteria', value)}
+                                      placeholder="Nhập tiêu chí..."
+                                    />
+                                  </td>
+                                  <td className="border border-gray-300 p-0">
+                                    <ExcelCell
+                                      value={item.details}
+                                      onChange={(value) => updateCriteria(process.id, 'environment', item.id, 'details', value)}
+                                      placeholder="Nhập chi tiết..."
+                                      multiline
+                                    />
+                                  </td>
+                                  <td className="border border-gray-300 bg-gray-50"></td>
+                                  <td className="border border-gray-300 bg-gray-50"></td>
+                                  <td className="border border-gray-300 p-1 text-center">
+                                    <Button
+                                      onClick={() => removeCriteria(process.id, 'environment', item.id)}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
 
-                            {/* Performance Profile Section */}
-                            <TableRow className="bg-gray-100">
-                              <TableCell colSpan={6} className="text-center font-semibold">
-                                II. Profile test hiệu năng
-                                <Button
-                                  onClick={() => addCriteria(process.id, 'performance')}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="ml-2"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                            {process.performanceCriteria.map((item, index) => (
-                              <TableRow key={item.id}>
-                                <TableCell className="text-center">{index + 1}</TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={item.criteria}
-                                    onChange={(e) => updateCriteria(process.id, 'performance', item.id, 'criteria', e.target.value)}
-                                    placeholder="Nhập tiêu chí..."
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={item.details}
-                                    onChange={(e) => updateCriteria(process.id, 'performance', item.id, 'details', e.target.value)}
-                                    placeholder="Nhập chi tiết..."
-                                  />
-                                </TableCell>
-                                <TableCell></TableCell>
-                                <TableCell></TableCell>
-                                <TableCell>
-                                  <Button
-                                    onClick={() => removeCriteria(process.id, 'performance', item.id)}
-                                    variant="ghost"
-                                    size="sm"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
+                              {/* Performance Profile Section */}
+                              <tr className="bg-green-50">
+                                <td colSpan={6} className="border border-gray-300 px-4 py-3 text-center font-semibold text-green-800">
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <span>II. Profile test hiệu năng</span>
+                                    <Button
+                                      onClick={() => addCriteria(process.id, 'performance')}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="ml-2 h-6 w-6 p-0"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                              {process.performanceCriteria.map((item, index) => (
+                                <tr key={item.id} className="hover:bg-gray-50">
+                                  <td className="border border-gray-300 text-center text-sm py-2">{index + 1}</td>
+                                  <td className="border border-gray-300 p-0">
+                                    <ExcelCell
+                                      value={item.criteria}
+                                      onChange={(value) => updateCriteria(process.id, 'performance', item.id, 'criteria', value)}
+                                      placeholder="Nhập tiêu chí..."
+                                    />
+                                  </td>
+                                  <td className="border border-gray-300 p-0">
+                                    <ExcelCell
+                                      value={item.details}
+                                      onChange={(value) => updateCriteria(process.id, 'performance', item.id, 'details', value)}
+                                      placeholder="Nhập chi tiết..."
+                                      multiline
+                                    />
+                                  </td>
+                                  <td className="border border-gray-300 bg-gray-50"></td>
+                                  <td className="border border-gray-300 bg-gray-50"></td>
+                                  <td className="border border-gray-300 p-1 text-center">
+                                    <Button
+                                      onClick={() => removeCriteria(process.id, 'performance', item.id)}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
 
-                            {/* Test Results Section */}
-                            <TableRow className="bg-gray-100">
-                              <TableCell colSpan={6} className="text-center font-semibold">
-                                III. Kết quả test
-                                <Button
-                                  onClick={() => addCriteria(process.id, 'results')}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="ml-2"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                            {process.testResults.map((item, index) => (
-                              <TableRow key={item.id}>
-                                <TableCell className="text-center">{index + 1}</TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={item.criteria}
-                                    onChange={(e) => updateCriteria(process.id, 'results', item.id, 'criteria', e.target.value)}
-                                    placeholder="Nhập tiêu chí..."
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={item.details}
-                                    onChange={(e) => updateCriteria(process.id, 'results', item.id, 'details', e.target.value)}
-                                    placeholder="Nhập chi tiết..."
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={item.evaluationMethod}
-                                    onChange={(e) => updateCriteria(process.id, 'results', item.id, 'evaluationMethod', e.target.value)}
-                                    placeholder="Nhập cách thức đánh giá..."
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Input
-                                    value={item.result}
-                                    onChange={(e) => updateCriteria(process.id, 'results', item.id, 'result', e.target.value)}
-                                    placeholder="Nhập kết quả..."
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Button
-                                    onClick={() => removeCriteria(process.id, 'results', item.id)}
-                                    variant="ghost"
-                                    size="sm"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                              {/* Test Results Section */}
+                              <tr className="bg-orange-50">
+                                <td colSpan={6} className="border border-gray-300 px-4 py-3 text-center font-semibold text-orange-800">
+                                  <div className="flex items-center justify-center space-x-2">
+                                    <span>III. Kết quả test</span>
+                                    <Button
+                                      onClick={() => addCriteria(process.id, 'results')}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="ml-2 h-6 w-6 p-0"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                              {process.testResults.map((item, index) => (
+                                <tr key={item.id} className="hover:bg-gray-50">
+                                  <td className="border border-gray-300 text-center text-sm py-2">{index + 1}</td>
+                                  <td className="border border-gray-300 p-0">
+                                    <ExcelCell
+                                      value={item.criteria}
+                                      onChange={(value) => updateCriteria(process.id, 'results', item.id, 'criteria', value)}
+                                      placeholder="Nhập tiêu chí..."
+                                    />
+                                  </td>
+                                  <td className="border border-gray-300 p-0">
+                                    <ExcelCell
+                                      value={item.details}
+                                      onChange={(value) => updateCriteria(process.id, 'results', item.id, 'details', value)}
+                                      placeholder="Nhập chi tiết..."
+                                      multiline
+                                    />
+                                  </td>
+                                  <td className="border border-gray-300 p-0">
+                                    <ExcelCell
+                                      value={item.evaluationMethod}
+                                      onChange={(value) => updateCriteria(process.id, 'results', item.id, 'evaluationMethod', value)}
+                                      placeholder="Nhập cách thức đánh giá..."
+                                      multiline
+                                    />
+                                  </td>
+                                  <td className="border border-gray-300 p-0">
+                                    <ExcelCell
+                                      value={item.result}
+                                      onChange={(value) => updateCriteria(process.id, 'results', item.id, 'result', value)}
+                                      placeholder="Nhập kết quả..."
+                                      multiline
+                                    />
+                                  </td>
+                                  <td className="border border-gray-300 p-1 text-center">
+                                    <Button
+                                      onClick={() => removeCriteria(process.id, 'results', item.id)}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </TabsContent>
                   ))}
