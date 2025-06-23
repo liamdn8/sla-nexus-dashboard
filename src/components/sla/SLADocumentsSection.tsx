@@ -5,7 +5,8 @@ import { DocumentManager } from "@/components/DocumentManager";
 import { ChecklistDocumentForm } from "./ChecklistDocumentForm";
 import { BMChecklistForm } from "./BMChecklistForm";
 import { BMSizingForm } from "./BMSizingForm";
-import { Plus, FileText, ClipboardList, Settings } from "lucide-react";
+import { BBPerformanceTestForm } from "./BBPerformanceTestForm";
+import { Plus, FileText, ClipboardList, Settings, BarChart3 } from "lucide-react";
 
 interface ApplicationVersion {
   id: string;
@@ -30,6 +31,7 @@ export const SLADocumentsSection = ({
   const [showChecklistForm, setShowChecklistForm] = useState(false);
   const [showBMChecklistForm, setShowBMChecklistForm] = useState(false);
   const [showBMSizingForm, setShowBMSizingForm] = useState(false);
+  const [showBBPerformanceTestForm, setShowBBPerformanceTestForm] = useState(false);
 
   // Extract SLA ID from title or use a default
   const slaId = slaTitle.includes("SLA") ? slaTitle.replace(/\s+/g, "-").toUpperCase() : "SLA-001";
@@ -59,11 +61,20 @@ export const SLADocumentsSection = ({
           </Button>
           <Button 
             onClick={() => setShowBMSizingForm(true)}
+            variant="outline"
             className="flex items-center space-x-2"
           >
             <Plus className="h-4 w-4" />
             <Settings className="h-4 w-4" />
             <span>Create BM Sizing</span>
+          </Button>
+          <Button 
+            onClick={() => setShowBBPerformanceTestForm(true)}
+            className="flex items-center space-x-2"
+          >
+            <Plus className="h-4 w-4" />
+            <BarChart3 className="h-4 w-4" />
+            <span>Create BB Performance Test</span>
           </Button>
         </div>
       </div>
@@ -87,6 +98,14 @@ export const SLADocumentsSection = ({
       <BMSizingForm
         isOpen={showBMSizingForm}
         onClose={() => setShowBMSizingForm(false)}
+        slaTitle={slaTitle}
+        slaId={slaId}
+        applicationVersions={applicationVersions}
+      />
+
+      <BBPerformanceTestForm
+        isOpen={showBBPerformanceTestForm}
+        onClose={() => setShowBBPerformanceTestForm(false)}
         slaTitle={slaTitle}
         slaId={slaId}
         applicationVersions={applicationVersions}
