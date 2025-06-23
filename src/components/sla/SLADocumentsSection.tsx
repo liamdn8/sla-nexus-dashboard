@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { DocumentManager } from "@/components/DocumentManager";
 import { ChecklistDocumentForm } from "./ChecklistDocumentForm";
 import { BMChecklistForm } from "./BMChecklistForm";
-import { Plus, FileText, ClipboardList } from "lucide-react";
+import { BMSizingForm } from "./BMSizingForm";
+import { Plus, FileText, ClipboardList, Settings } from "lucide-react";
 
 interface ApplicationVersion {
   id: string;
@@ -28,6 +29,10 @@ export const SLADocumentsSection = ({
 }: SLADocumentsSectionProps) => {
   const [showChecklistForm, setShowChecklistForm] = useState(false);
   const [showBMChecklistForm, setShowBMChecklistForm] = useState(false);
+  const [showBMSizingForm, setShowBMSizingForm] = useState(false);
+
+  // Extract SLA ID from title or use a default
+  const slaId = slaTitle.includes("SLA") ? slaTitle.replace(/\s+/g, "-").toUpperCase() : "SLA-001";
 
   return (
     <div id="documents">
@@ -45,11 +50,20 @@ export const SLADocumentsSection = ({
           </Button>
           <Button 
             onClick={() => setShowBMChecklistForm(true)}
+            variant="outline"
             className="flex items-center space-x-2"
           >
             <Plus className="h-4 w-4" />
             <ClipboardList className="h-4 w-4" />
             <span>Create BM Checklist</span>
+          </Button>
+          <Button 
+            onClick={() => setShowBMSizingForm(true)}
+            className="flex items-center space-x-2"
+          >
+            <Plus className="h-4 w-4" />
+            <Settings className="h-4 w-4" />
+            <span>Create BM Sizing</span>
           </Button>
         </div>
       </div>
@@ -67,6 +81,14 @@ export const SLADocumentsSection = ({
         onClose={() => setShowBMChecklistForm(false)}
         slaTitle={slaTitle}
         slaDescription={slaDescription}
+        applicationVersions={applicationVersions}
+      />
+
+      <BMSizingForm
+        isOpen={showBMSizingForm}
+        onClose={() => setShowBMSizingForm(false)}
+        slaTitle={slaTitle}
+        slaId={slaId}
         applicationVersions={applicationVersions}
       />
     </div>
