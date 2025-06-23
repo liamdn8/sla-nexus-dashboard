@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,6 +29,7 @@ import ProjectSettings from "./pages/settings/ProjectSettings";
 import AccountSettings from "./pages/settings/AccountSettings";
 import Login from "./pages/Login";
 import Projects from "./pages/Projects";
+import DocumentManager from "./pages/DocumentManager";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +59,7 @@ const App = () => (
           <Route path="/delivery-workflows/:workflowId" element={<DeliveryWorkflowDetail />} />
           <Route path="/environment-detail/:systemId" element={<EnvironmentDetail />} />
           <Route path="/cnf-detail/:cnfId" element={<CNFDetail />} />
+          <Route path="/document-manager" element={<DocumentManager />} />
           <Route path="/settings/external-tools" element={<ExternalTools />} />
           <Route path="/settings/environment-mapping" element={<EnvironmentMapping />} />
           <Route path="/settings/development-mapping" element={<DevelopmentMapping />} />

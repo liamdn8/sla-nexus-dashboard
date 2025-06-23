@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Sidebar,
@@ -11,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User, Home, FolderOpen, Workflow } from "lucide-react";
+import { FileText, List, Smartphone, Rocket, Server, Building, Database, Settings, Users, Link, GitBranch, User, Home, FolderOpen, Workflow, Folder } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const mainItems = [
@@ -24,6 +23,11 @@ const mainItems = [
     title: "Projects",
     url: "/projects",
     icon: FolderOpen,
+  },
+  {
+    title: "Document Manager",
+    url: "/document-manager",
+    icon: Folder,
   },
 ];
 
