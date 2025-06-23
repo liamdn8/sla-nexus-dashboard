@@ -85,7 +85,7 @@ export const BBPerformanceTestForm = ({
     if (selectedApplications.length > 0) {
       const initialProcesses = selectedApplications.map((app, index) => ({
         id: `process-${index}`,
-        name: `${app.application} v${app.version}`,
+        name: `Tiến trình ${app.application} v${app.version}`,
         environmentCriteria: defaultEnvironmentCriteria.map(item => ({ ...item, id: `${app.id}-env-${item.id}` })),
         performanceCriteria: defaultPerformanceCriteria.map(item => ({ ...item, id: `${app.id}-perf-${item.id}` })),
         testResults: [],
@@ -190,14 +190,13 @@ export const BBPerformanceTestForm = ({
     console.log('Saving BB Performance Test document:', bbTestData);
     setHasUnsavedChanges(false);
     
-    if (showCommitmentPopup) {
-      setShowCommitmentPopup(true);
-    } else {
-      toast({
-        title: "Document Saved",
-        description: "BB Performance Test document has been saved successfully.",
-      });
-    }
+    toast({
+      title: "Document Saved",
+      description: "BB Performance Test document has been saved successfully.",
+    });
+    
+    // Show commitment popup after saving
+    setShowCommitmentPopup(true);
   };
 
   const handlePrintPreview = () => {
@@ -241,11 +240,16 @@ export const BBPerformanceTestForm = ({
             .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px; }
             .title { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
             .process-section { margin: 30px 0; page-break-inside: avoid; }
-            .process-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+            .process-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; background-color: #f0f0f0; padding: 10px; text-align: center; }
             .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
             .table th, .table td { border: 1px solid #000; padding: 8px; text-align: left; vertical-align: top; }
-            .table th { background-color: #f0f0f0; font-weight: bold; }
-            .section-title { font-size: 16px; font-weight: bold; margin: 20px 0 10px 0; }
+            .table th { background-color: #e0e0e0; font-weight: bold; text-align: center; }
+            .section-header { background-color: #d0d0d0; font-weight: bold; text-align: center; }
+            .stt-column { width: 40px; text-align: center; }
+            .criteria-column { width: 200px; }
+            .details-column { width: 150px; }
+            .method-column { width: 150px; }
+            .result-column { width: 200px; }
             .commitment-section { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; }
             .signature-section { margin-top: 40px; display: flex; justify-content: space-between; }
             .signature-box { width: 200px; text-align: center; }
@@ -258,42 +262,58 @@ export const BBPerformanceTestForm = ({
             <div>SLA: ${slaTitle}</div>
           </div>
           
-          ${processDataList.map(process => `
+          ${processDataList.map((process, processIndex) => `
             <div class="process-section">
               <div class="process-title">${process.name}</div>
               
-              <div class="section-title">Yêu cầu về môi trường đánh giá:</div>
               <table class="table">
                 <thead>
-                  <tr><th>Tiêu chí</th><th>Chỉ tiêu chi tiết</th></tr>
+                  <tr>
+                    <th class="stt-column">STT</th>
+                    <th class="criteria-column">Tiêu chí</th>
+                    <th class="details-column">Chỉ tiêu chi tiết</th>
+                    <th class="method-column">Cách thức thực hiện đánh giá</th>
+                    <th class="result-column">Kết quả</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  ${process.environmentCriteria.map(item => `
-                    <tr><td>${item.criteria}</td><td>${item.details}</td></tr>
+                  <tr class="section-header">
+                    <td colspan="5" style="text-align: center; font-weight: bold;">I. Yêu cầu về môi trường đánh giá</td>
+                  </tr>
+                  ${process.environmentCriteria.map((item, index) => `
+                    <tr>
+                      <td class="stt-column">${index + 1}</td>
+                      <td>${item.criteria}</td>
+                      <td>${item.details}</td>
+                      <td></td>
+                      <td></td>
+                    </tr>
                   `).join('')}
-                </tbody>
-              </table>
-              
-              <div class="section-title">Profile test hiệu năng:</div>
-              <table class="table">
-                <thead>
-                  <tr><th>Tiêu chí</th><th>Chỉ tiêu chi tiết</th></tr>
-                </thead>
-                <tbody>
-                  ${process.performanceCriteria.map(item => `
-                    <tr><td>${item.criteria}</td><td>${item.details}</td></tr>
+                  
+                  <tr class="section-header">
+                    <td colspan="5" style="text-align: center; font-weight: bold;">II. Profile test hiệu năng</td>
+                  </tr>
+                  ${process.performanceCriteria.map((item, index) => `
+                    <tr>
+                      <td class="stt-column">${index + 1}</td>
+                      <td>${item.criteria}</td>
+                      <td>${item.details}</td>
+                      <td></td>
+                      <td></td>
+                    </tr>
                   `).join('')}
-                </tbody>
-              </table>
-              
-              <div class="section-title">Kết quả test:</div>
-              <table class="table">
-                <thead>
-                  <tr><th>Tiêu chí</th><th>Chỉ tiêu chi tiết</th><th>Cách thức thực hiện đánh giá</th><th>Kết quả</th></tr>
-                </thead>
-                <tbody>
-                  ${process.testResults.map(item => `
-                    <tr><td>${item.criteria}</td><td>${item.details}</td><td>${item.evaluationMethod}</td><td>${item.result}</td></tr>
+                  
+                  <tr class="section-header">
+                    <td colspan="5" style="text-align: center; font-weight: bold;">III. Kết quả test</td>
+                  </tr>
+                  ${process.testResults.map((item, index) => `
+                    <tr>
+                      <td class="stt-column">${index + 1}</td>
+                      <td>${item.criteria}</td>
+                      <td>${item.details}</td>
+                      <td>${item.evaluationMethod}</td>
+                      <td>${item.result}</td>
+                    </tr>
                   `).join('')}
                 </tbody>
               </table>
@@ -301,7 +321,7 @@ export const BBPerformanceTestForm = ({
           `).join('')}
           
           <div class="commitment-section">
-            <div class="section-title">Cam kết:</div>
+            <div style="font-weight: bold; margin-bottom: 10px;">Cam kết:</div>
             <p>${commitment}</p>
           </div>
           
@@ -366,19 +386,6 @@ export const BBPerformanceTestForm = ({
                     <Input value={slaId} disabled className="bg-gray-100" />
                   </div>
                 </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Cam kết</label>
-                  <Textarea
-                    value={commitment}
-                    onChange={(e) => {
-                      setCommitment(e.target.value);
-                      handleFormChange();
-                    }}
-                    className="min-h-[100px]"
-                    maxLength={1000}
-                  />
-                </div>
               </CardContent>
             </Card>
 
@@ -399,31 +406,37 @@ export const BBPerformanceTestForm = ({
                   
                   {processDataList.map((process) => (
                     <TabsContent key={process.id} value={process.id} className="space-y-6">
-                      {/* Environment Requirements */}
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold">Yêu cầu về môi trường đánh giá</h3>
-                          <Button
-                            onClick={() => addCriteria(process.id, 'environment')}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Thêm tiêu chí
-                          </Button>
-                        </div>
-                        
+                      {/* Combined Table View (like in the image) */}
+                      <div className="border rounded-lg overflow-hidden">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-1/3">Tiêu chí</TableHead>
-                              <TableHead className="w-2/3">Chỉ tiêu chi tiết</TableHead>
+                              <TableHead className="w-12 text-center">STT</TableHead>
+                              <TableHead className="w-1/4">Tiêu chí</TableHead>
+                              <TableHead className="w-1/4">Chỉ tiêu chi tiết</TableHead>
+                              <TableHead className="w-1/4">Cách thức thực hiện đánh giá</TableHead>
+                              <TableHead className="w-1/4">Kết quả</TableHead>
                               <TableHead className="w-12"></TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {process.environmentCriteria.map((item) => (
+                            {/* Environment Requirements Section */}
+                            <TableRow className="bg-gray-100">
+                              <TableCell colSpan={6} className="text-center font-semibold">
+                                I. Yêu cầu về môi trường đánh giá
+                                <Button
+                                  onClick={() => addCriteria(process.id, 'environment')}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="ml-2"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                            {process.environmentCriteria.map((item, index) => (
                               <TableRow key={item.id}>
+                                <TableCell className="text-center">{index + 1}</TableCell>
                                 <TableCell>
                                   <Input
                                     value={item.criteria}
@@ -438,6 +451,8 @@ export const BBPerformanceTestForm = ({
                                     placeholder="Nhập chi tiết..."
                                   />
                                 </TableCell>
+                                <TableCell></TableCell>
+                                <TableCell></TableCell>
                                 <TableCell>
                                   <Button
                                     onClick={() => removeCriteria(process.id, 'environment', item.id)}
@@ -449,35 +464,24 @@ export const BBPerformanceTestForm = ({
                                 </TableCell>
                               </TableRow>
                             ))}
-                          </TableBody>
-                        </Table>
-                      </div>
 
-                      {/* Performance Profile */}
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold">Profile test hiệu năng</h3>
-                          <Button
-                            onClick={() => addCriteria(process.id, 'performance')}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Thêm tiêu chí
-                          </Button>
-                        </div>
-                        
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-1/3">Tiêu chí</TableHead>
-                              <TableHead className="w-2/3">Chỉ tiêu chi tiết</TableHead>
-                              <TableHead className="w-12"></TableHead>
+                            {/* Performance Profile Section */}
+                            <TableRow className="bg-gray-100">
+                              <TableCell colSpan={6} className="text-center font-semibold">
+                                II. Profile test hiệu năng
+                                <Button
+                                  onClick={() => addCriteria(process.id, 'performance')}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="ml-2"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {process.performanceCriteria.map((item) => (
+                            {process.performanceCriteria.map((item, index) => (
                               <TableRow key={item.id}>
+                                <TableCell className="text-center">{index + 1}</TableCell>
                                 <TableCell>
                                   <Input
                                     value={item.criteria}
@@ -492,6 +496,8 @@ export const BBPerformanceTestForm = ({
                                     placeholder="Nhập chi tiết..."
                                   />
                                 </TableCell>
+                                <TableCell></TableCell>
+                                <TableCell></TableCell>
                                 <TableCell>
                                   <Button
                                     onClick={() => removeCriteria(process.id, 'performance', item.id)}
@@ -503,37 +509,24 @@ export const BBPerformanceTestForm = ({
                                 </TableCell>
                               </TableRow>
                             ))}
-                          </TableBody>
-                        </Table>
-                      </div>
 
-                      {/* Test Results */}
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold">Kết quả test</h3>
-                          <Button
-                            onClick={() => addCriteria(process.id, 'results')}
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Thêm kết quả
-                          </Button>
-                        </div>
-                        
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="w-1/4">Tiêu chí</TableHead>
-                              <TableHead className="w-1/4">Chỉ tiêu chi tiết</TableHead>
-                              <TableHead className="w-1/4">Cách thức thực hiện đánh giá</TableHead>
-                              <TableHead className="w-1/4">Kết quả</TableHead>
-                              <TableHead className="w-12"></TableHead>
+                            {/* Test Results Section */}
+                            <TableRow className="bg-gray-100">
+                              <TableCell colSpan={6} className="text-center font-semibold">
+                                III. Kết quả test
+                                <Button
+                                  onClick={() => addCriteria(process.id, 'results')}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="ml-2"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
                             </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {process.testResults.map((item) => (
+                            {process.testResults.map((item, index) => (
                               <TableRow key={item.id}>
+                                <TableCell className="text-center">{index + 1}</TableCell>
                                 <TableCell>
                                   <Input
                                     value={item.criteria}
@@ -579,6 +572,24 @@ export const BBPerformanceTestForm = ({
                     </TabsContent>
                   ))}
                 </Tabs>
+              </CardContent>
+            </Card>
+
+            {/* Commitment Section - Moved to end */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Cam kết</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  value={commitment}
+                  onChange={(e) => {
+                    setCommitment(e.target.value);
+                    handleFormChange();
+                  }}
+                  className="min-h-[100px]"
+                  maxLength={1000}
+                />
               </CardContent>
             </Card>
 
