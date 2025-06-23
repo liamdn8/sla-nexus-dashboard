@@ -27,16 +27,17 @@ const DocumentManager = () => {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
   const [folders, setFolders] = useState<Record<string, FolderData>>({});
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
-  // AWS S3 Configuration
+  // AWS S3 Configuration for public bucket
   const s3 = new AWS.S3({
     region: 'ap-southeast-2',
-    accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY || '',
+    // No credentials needed for public bucket operations
+    signatureVersion: 'v4'
   });
 
   const bucketName = 'devops-vsm-2025';
@@ -67,7 +68,7 @@ const DocumentManager = () => {
       console.error('Error loading folder files:', error);
       toast({
         title: "Error loading files",
-        description: "Failed to load files from S3. Check your AWS configuration.",
+        description: "Failed to load files from S3. Check bucket configuration.",
         variant: "destructive",
       });
     } finally {
@@ -133,54 +134,57 @@ const DocumentManager = () => {
   };
 
   const handleUpload = async () => {
-    if (uploadFile && selectedFolder) {
-      setLoading(true);
+    if (uploadFiles && selectedFolder && uploadFiles.length > 0) {
+      setUploading(true);
       try {
-        const fileKey = `${selectedFolder}/${uploadFile.name}`;
-        
-        const params = {
-          Bucket: bucketName,
-          Key: fileKey,
-          Body: uploadFile,
-          ContentType: uploadFile.type,
-        };
+        const uploadPromises = Array.from(uploadFiles).map(async (file) => {
+          const fileKey = `${selectedFolder}/${file.name}`;
+          
+          const params = {
+            Bucket: bucketName,
+            Key: fileKey,
+            Body: file,
+            ContentType: file.type,
+            ACL: 'public-read' // Make uploaded files publicly readable
+          };
 
-        await s3.upload(params).promise();
+          return s3.upload(params).promise();
+        });
+
+        await Promise.all(uploadPromises);
 
         // Refresh folder files
         await loadFolderFiles(selectedFolder);
 
         setShowUploadDialog(false);
-        setUploadFile(null);
+        setUploadFiles(null);
         toast({
-          title: "File uploaded successfully",
-          description: `${uploadFile.name} has been uploaded to ${selectedFolder} folder.`,
+          title: "Files uploaded successfully",
+          description: `${uploadFiles.length} file(s) have been uploaded to ${selectedFolder} folder.`,
         });
       } catch (error) {
-        console.error('Error uploading file:', error);
+        console.error('Error uploading files:', error);
         toast({
           title: "Upload failed",
-          description: "Failed to upload file to S3. Please try again.",
+          description: "Failed to upload files to S3. Please try again.",
           variant: "destructive",
         });
       } finally {
-        setLoading(false);
+        setUploading(false);
       }
     }
   };
 
   const handleDownload = async (file: FileItem) => {
     try {
-      const url = s3.getSignedUrl('getObject', {
-        Bucket: bucketName,
-        Key: file.key,
-        Expires: 60 // URL expires in 60 seconds
-      });
+      // For public bucket, we can construct the direct URL
+      const url = `https://${bucketName}.s3.ap-southeast-2.amazonaws.com/${file.key}`;
 
       // Create a temporary link to download the file
       const link = document.createElement('a');
       link.href = url;
       link.download = file.name;
+      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -251,15 +255,15 @@ const DocumentManager = () => {
         <div className="max-w-7xl mx-auto p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-4">
-              <Button variant="outline" onClick={handleBackToFolders} disabled={loading}>
+              <Button variant="outline" onClick={handleBackToFolders} disabled={loading || uploading}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Folders
               </Button>
               <h1 className="text-2xl font-bold text-gray-900">{currentFolder?.name} Folder</h1>
             </div>
-            <Button onClick={() => setShowUploadDialog(true)} disabled={loading}>
+            <Button onClick={() => setShowUploadDialog(true)} disabled={loading || uploading}>
               <Upload className="h-4 w-4 mr-2" />
-              Upload File
+              Upload Files
             </Button>
           </div>
 
@@ -289,7 +293,7 @@ const DocumentManager = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => handleDownload(file)} disabled={loading}>
+                        <Button variant="outline" size="sm" onClick={() => handleDownload(file)} disabled={loading || uploading}>
                           <Download className="h-4 w-4" />
                         </Button>
                         <Button 
@@ -299,7 +303,7 @@ const DocumentManager = () => {
                             setFileToDelete(file.key);
                             setShowDeleteDialog(true);
                           }}
-                          disabled={loading}
+                          disabled={loading || uploading}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -316,21 +320,34 @@ const DocumentManager = () => {
         <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Upload File to {currentFolder?.name}</DialogTitle>
+              <DialogTitle>Upload Files to {currentFolder?.name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Input
                 type="file"
-                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                disabled={loading}
+                multiple
+                onChange={(e) => setUploadFiles(e.target.files)}
+                disabled={uploading}
               />
+              {uploadFiles && uploadFiles.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  Selected {uploadFiles.length} file(s):
+                  <ul className="mt-2 space-y-1">
+                    {Array.from(uploadFiles).map((file, index) => (
+                      <li key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                        {file.name} ({formatFileSize(file.size)})
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowUploadDialog(false)} disabled={loading}>
+              <Button variant="outline" onClick={() => setShowUploadDialog(false)} disabled={uploading}>
                 Cancel
               </Button>
-              <Button onClick={handleUpload} disabled={!uploadFile || loading}>
-                {loading ? 'Uploading...' : 'Upload'}
+              <Button onClick={handleUpload} disabled={!uploadFiles || uploadFiles.length === 0 || uploading}>
+                {uploading ? 'Uploading...' : 'Upload Files'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -346,8 +363,8 @@ const DocumentManager = () => {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteFile} disabled={loading}>
+              <AlertDialogCancel disabled={loading || uploading}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteFile} disabled={loading || uploading}>
                 {loading ? 'Deleting...' : 'Delete'}
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -362,7 +379,7 @@ const DocumentManager = () => {
       <div className="max-w-7xl mx-auto p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Document Manager</h1>
-          <p className="text-gray-600">Manage your project documents organized by folders (AWS S3)</p>
+          <p className="text-gray-600">Manage your project documents organized by folders (AWS S3 Public)</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
