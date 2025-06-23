@@ -143,17 +143,31 @@ const DocumentManager = () => {
     if (uploadFiles && selectedFolder && uploadFiles.length > 0) {
       setUploading(true);
       
-      // For demonstration purposes, we'll simulate upload success
-      // In a real implementation, you'd need server-side upload handling
-      // or use presigned URLs for secure uploads
-      
       try {
-        // Simulate upload process
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        const uploadPromises = Array.from(uploadFiles).map(async (file) => {
+          const key = `${selectedFolder}/${file.name}`;
+          const url = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
+          
+          const response = await fetch(url, {
+            method: 'PUT',
+            body: file,
+            headers: {
+              'Content-Type': file.type || 'application/octet-stream',
+            },
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to upload ${file.name}: ${response.status}`);
+          }
+          
+          return file.name;
+        });
+        
+        const uploadedFiles = await Promise.all(uploadPromises);
         
         toast({
-          title: "Upload simulation",
-          description: `Would upload ${uploadFiles.length} file(s) to ${selectedFolder} folder. Note: Actual upload requires server-side implementation or presigned URLs.`,
+          title: "Upload successful",
+          description: `Successfully uploaded ${uploadedFiles.length} file(s) to ${selectedFolder} folder.`,
         });
         
         setShowUploadDialog(false);
@@ -166,7 +180,7 @@ const DocumentManager = () => {
         console.error('Upload error:', error);
         toast({
           title: "Upload failed",
-          description: "Failed to upload files. Please try again.",
+          description: error instanceof Error ? error.message : "Failed to upload files. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -207,14 +221,19 @@ const DocumentManager = () => {
     if (fileToDelete && selectedFolder) {
       setLoading(true);
       try {
-        // For demonstration purposes, we'll simulate delete success
-        // In a real implementation, you'd need server-side delete handling
+        const url = `https://${bucketName}.s3.${region}.amazonaws.com/${fileToDelete}`;
         
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const response = await fetch(url, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to delete file: ${response.status}`);
+        }
         
         toast({
-          title: "Delete simulation",
-          description: "Would delete file from S3. Note: Actual delete requires server-side implementation.",
+          title: "Delete successful",
+          description: "File has been successfully deleted from S3.",
         });
         
         setShowDeleteDialog(false);
@@ -227,7 +246,7 @@ const DocumentManager = () => {
         console.error('Error deleting file:', error);
         toast({
           title: "Delete failed",
-          description: "Failed to delete file. Please try again.",
+          description: error instanceof Error ? error.message : "Failed to delete file. Please try again.",
           variant: "destructive",
         });
       } finally {
